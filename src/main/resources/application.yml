@@ -1,0 +1,49 @@
+server:
+  port: 8086
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: data-service-platform
+  datasource:
+    # 元数据库：默认 H2（零配置开箱即用）；生产建议切换 MySQL：
+    # url: jdbc:mysql://127.0.0.1:3306/dsp_meta?useUnicode=true&characterEncoding=utf8
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:file:./data/dsp_meta;MODE=MySQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE
+    username: dsp
+    password: dsp_meta_2026
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+dsp:
+  # AES 加密密钥（数据源密码加密存储），上线前务必修改
+  aes-key: "Dsp@Aes#Key2026!"
+  # JDBC 驱动 jar 目录（GBase/Oracle 等驱动 jar 放这里，平台动态加载）
+  drivers-dir: ./drivers
+  # 默认管理员账号（首次启动自动创建 admin/admin123，登录后请修改）
+  admin-user: admin
+  admin-pass: admin123
+  # token 有效期（分钟）
+  token-ttl-minutes: 720
+  # SQL 查询默认超时（秒）
+  query-timeout-seconds: 60
+  # 查询结果最大行数
+  max-rows: 10000
+  # 网关响应缓存最大条数
+  cache-max-entries: 2000
+  # 每分钟单 API 最大调用次数（0=不限，API 可单独覆盖）
+  default-rate-limit: 600
+
+logging:
+  level:
+    com.enterprise.dsp: info
+  file:
+    name: ./logs/dsp.log

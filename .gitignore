@@ -1,0 +1,29 @@
+# ---- build ----
+target/
+*.class
+*.jar
+
+# ---- runtime data (local, per-machine) ----
+data/
+data_backup_*/
+logs/
+exports/
+drivers/
+*.log
+
+# ---- local test artifacts ----
+test-result.txt
+测试报告.html
+dsp_check.js
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db

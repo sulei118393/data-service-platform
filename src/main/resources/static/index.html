@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>数据服务平台</title>
+<style>
+:root{--p:#2b6de8;--bg:#f0f2f7;--card:#fff;--line:#e3e8f0;--t:#1f2d3d;--t2:#7a8ba3;--ok:#18a058;--warn:#e2a03f;--err:#d43a3a;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font:14px/1.6 "Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t)}
+a{color:var(--p);text-decoration:none}
+button{cursor:pointer}
+.btn{background:var(--p);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:13px}
+.btn.gray{background:#8492a6}.btn.green{background:var(--ok)}.btn.red{background:var(--err)}
+.btn.sm{padding:3px 10px;font-size:12px}
+input,select,textarea{border:1px solid #c9d4e3;border-radius:6px;padding:7px 10px;font-size:13px;outline:none;background:#fff;color:var(--t)}
+input:focus,select:focus,textarea:focus{border-color:var(--p)}
+textarea{font-family:Consolas,monospace;width:100%}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border-bottom:1px solid var(--line);padding:9px 12px;text-align:left;font-size:13px}
+th{background:#f7f9fc;color:var(--t2);font-weight:500;white-space:nowrap}
+tr:hover td{background:#f6f9ff}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px}
+.tag.on{background:#e3f5eb;color:var(--ok)}.tag.off{background:#fdeaea;color:var(--err)}
+.tag.warn{background:#fdf3e0;color:#b87713}
+.card{background:var(--card);border-radius:10px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(30,60,120,.06)}
+.layout{display:flex;height:100vh}
+.side{width:210px;background:#1e2a3d;color:#c3d0e0;flex-shrink:0;display:flex;flex-direction:column}
+.side .logo{padding:20px 22px;font-size:16px;font-weight:500;color:#fff;border-bottom:1px solid #2c3a52}
+.side a{display:block;padding:12px 22px;color:#c3d0e0;cursor:pointer}
+.side a.act{background:var(--p);color:#fff}
+.side .foot{margin-top:auto;padding:14px 22px;font-size:12px;color:#7a8ba3}
+.main{flex:1;overflow:auto;padding:20px 24px}
+.main h2{font-size:17px;margin-bottom:14px;font-weight:500}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(30,60,120,.06)}
+.stat b{font-size:26px;display:block}
+.stat span{color:var(--t2);font-size:12px}
+.frm label{display:block;font-size:12px;color:var(--t2);margin:10px 0 4px}
+.frm input,.frm select{width:100%}
+.cond-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.modal-mask{position:fixed;inset:0;background:rgba(10,20,40,.45);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:#fff;border-radius:12px;padding:22px;width:720px;max-height:88vh;overflow:auto}
+.modal h3{margin-bottom:12px;font-weight:500;font-size:16px}
+.steps{display:flex;margin-bottom:16px;border-bottom:2px solid var(--line)}
+.steps div{padding:8px 20px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.steps div.act{color:var(--p);border-color:var(--p);font-weight:500}
+.hint{color:var(--t2);font-size:12px}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 22px;border-radius:8px;z-index:99;display:none}
+.pager{display:flex;gap:8px;align-items:center;margin-top:12px;justify-content:flex-end;color:var(--t2);font-size:13px}
+.login-page{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#2b6de8,#1e2a3d)}
+.login-box{background:#fff;border-radius:14px;padding:36px;width:360px}
+.login-box h1{font-size:20px;margin-bottom:20px;text-align:center;font-weight:500}
+/* ---------- 图表 ---------- */
+.stat.big{padding:20px;border-radius:12px;color:#fff;box-shadow:0 4px 16px rgba(20,50,120,.22);position:relative;overflow:hidden}
+.stat.big b{font-size:30px;letter-spacing:.5px}
+.stat.big span{color:rgba(255,255,255,.85);font-size:12px}
+.stat.big .ico{position:absolute;right:16px;top:14px;font-size:34px;opacity:.5}
+.gauges{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-around}
+.gauge{width:112px;text-align:center}
+.chart-leg{display:flex;gap:16px;font-size:12px;color:var(--t2);margin-top:8px;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.hbar{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:12px}
+.hbar .lb{width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .tr{flex:1;background:#eef2f8;border-radius:5px;height:14px;overflow:hidden}
+.hbar .fl{height:100%;border-radius:5px;background:linear-gradient(90deg,#2b6de8,#5aa0ff)}
+.hbar .vl{width:60px;text-align:right;color:var(--t2);flex-shrink:0}
+.dprog{background:#eef2f8;border-radius:5px;height:10px;width:140px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+.dprog i{display:block;height:100%;background:linear-gradient(90deg,#18a058,#3ecf7e)}
+.dprog.w i{background:linear-gradient(90deg,#e2a03f,#f0c064)}
+.dprog.e i{background:linear-gradient(90deg,#d43a3a,#ef6b6b)}
+.chip{display:inline-block;background:#f0f4fb;border-radius:8px;padding:4px 12px;margin:3px 6px 3px 0;font-size:12px;color:var(--t2)}
+.chip b{color:var(--t);font-weight:500}
+.panel2{display:grid;grid-template-columns:1.8fr 1fr;gap:14px}
+@media (max-width:1100px){.panel2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+var API='/dsp/api', token=localStorage.getItem('dsp_token')||'', user=localStorage.getItem('dsp_user')||'';
+var view='dashboard', cache={ds:[],apis:[],apps:[]};
+
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function toast(m,ok){var t=$('#toast');t.textContent=m;t.style.display='block';t.style.background=ok?'#18a058':'#d43a3a';setTimeout(function(){t.style.display='none'},2600)}
+function req(url,body,method){
+  return fetch(url,{method:method||'GET',headers:{'Content-Type':'application/json','X-Token':token},
+    body:body?JSON.stringify(body):undefined}).then(function(r){return r.json()}).then(function(res){
+      if(res.code===401){showLogin();throw new Error('登录失效')}
+      return res})
+}
+function api(url,body,method){return req(url,body,method).then(function(r){
+  if(r.code!==0){toast(r.message,false);throw new Error(r.message)} return r.data})}
+
+/* ---------- 登录 ---------- */
+function showLogin(){
+  $('#app').innerHTML='<div class="login-page"><div class="login-box"><h1>数据服务平台</h1>'+
+  '<div class="frm"><label>用户名</label><input id="lu" value="admin"><label>密码</label><input id="lp" type="password" value="admin123"></div>'+
+  '<button class="btn" style="width:100%;margin-top:18px" onclick="doLogin()">登 录</button>'+
+  '<div class="hint" style="margin-top:10px;text-align:center">初始账号 admin / admin123</div></div></div>'
+}
+function doLogin(){
+  fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:$('#lu').value,password:$('#lp').value})})
+  .then(function(r){return r.json()}).then(function(res){
+    if(res.code!==0){toast(res.message,false);return}
+    token=res.data.token;user=res.data.username;
+    localStorage.setItem('dsp_token',token);localStorage.setItem('dsp_user',user);
+    boot()
+  })
+}
+
+/* ---------- 框架 ---------- */
+var MENUS=[
+ ['总览',[['dashboard','仪表盘']]],
+ ['数据服务',[['ds','数据源管理'],['api','API 服务管理'],['app','应用与密钥'],['sub','订阅与授权'],['approval','审批中心'],['log','调用日志'],['doc','接口文档']]],
+ ['数据资产',[['meta','元数据管理'],['asset','资产目录'],['mask','脱敏规则']]],
+ ['监控运维',[['monitor','监控与告警'],['batch','批量任务'],['oplog','操作日志']]],
+ ['计量门户',[['biz','计量报表'],['portal','开发者门户']]],
+ ['系统管理',[['user','用户管理'],['config','参数配置']]]
+]
+function boot(){
+  if(!token){showLogin();return}
+  $('#app').innerHTML='<div class="layout"><div class="side"><div class="logo">数据服务平台</div>'+
+    MENUS.map(function(g){return '<div style="padding:10px 22px 2px;font-size:11px;color:#5f7391">'+g[0]+'</div>'+
+      g[1].map(function(m){return '<a data-v="'+m[0]+'" onclick="go(\''+m[0]+'\')">'+m[1]+'</a>'}).join('')}).join('')+
+    '<div class="foot">'+esc(user)+'<br><a style="color:#7a8ba3" onclick="logout()">退出登录</a></div></div>'+
+    '<div class="main" id="main"></div></div>'
+  go('dashboard')
+}
+function go(v){view=v;document.querySelectorAll('.side a').forEach(function(a){a.classList.toggle('act',a.getAttribute('data-v')===v)});render()}
+function logout(){fetch(API+'/logout',{method:'POST',headers:{'X-Token':token}});localStorage.removeItem('dsp_token');token='';showLogin()}
+
+/* ---------- 仪表盘 ---------- */
+function render(){
+  stopSys();
+  var m=$('#main');
+  if(view==='dashboard'){
+    m.innerHTML='<h2>仪表盘</h2><div class="hint">加载中...</div>';
+    Promise.all([api(API+'/dashboard'),api(API+'/sys/metrics')]).then(function(rs){
+      var d=rs[0],sys=rs[1];
+      var st=d.statusToday||{};
+      var parts=[
+        {n:'成功',v:st.SUCCESS||0,color:'#18a058'},
+        {n:'拒绝',v:st.DENY||0,color:'#e2a03f'},
+        {n:'失败',v:st.FAIL||0,color:'#d43a3a'},
+        {n:'Mock',v:st.MOCK||0,color:'#2b6de8'}].filter(function(p){return p.v>0});
+      var trend=d.trend7d||[];
+      var labels=trend.map(function(r){return r.day_label||r.DAY_LABEL});
+      var tr=(trend[trend.length-1]||{});
+      m.innerHTML='<h2>仪表盘</h2>'+
+      '<div class="grid4">'+
+        bigStat('数据源',d.dsCount,'🗄️','linear-gradient(135deg,#2b6de8,#5aa0ff)')+
+        bigStat('API 服务',d.apiCount,'⚡','linear-gradient(135deg,#7b52e8,#a97fff)')+
+        bigStat('接入应用',d.appCount,'📱','linear-gradient(135deg,#0aa2a2,#3ccfcf)')+
+        bigStat('今日调用',d.logToday,'📈','linear-gradient(135deg,#0e9f6e,#3ecf7e)')+
+      '</div><div style="height:14px"></div><div class="panel2">'+
+        '<div class="card" style="margin:0"><div class="row" style="margin-bottom:4px"><b>近 7 天调用趋势</b>'+
+        '<span class="hint">累计 '+(trend.reduce(function(s,r){return s+(r.cnt||r.CNT||0)},0))+' 次 · 失败 '+(trend.reduce(function(s,r){return s+(r.fail_cnt||r.FAIL_CNT||0)},0))+' 次</span></div>'+
+        '<div id="dashTrend">'+lineChart([
+          {name:'调用量',color:'#2b6de8',data:trend.map(function(r){return r.cnt||r.CNT||0})},
+          {name:'失败量',color:'#d43a3a',data:trend.map(function(r){return r.fail_cnt||r.FAIL_CNT||0})}
+        ],labels,{noArea:true})+'</div>'+
+        '<div class="chart-leg"><span><i class="dot" style="background:#2b6de8"></i>调用量</span><span><i class="dot" style="background:#d43a3a"></i>失败量</span></div></div>'+
+        '<div class="card" style="margin:0"><div style="font-weight:500;margin-bottom:8px">今日调用状态分布</div>'+
+        '<div style="text-align:center">'+(parts.length?donut(parts,'总调用'):'<div class="hint" style="padding:40px 0">今日暂无调用</div>')+'</div></div>'+
+      '</div><div style="height:14px"></div><div class="panel2">'+
+        '<div class="card" style="margin:0"><div style="font-weight:500;margin-bottom:8px">服务器资源 <span class="hint" id="sysTime"></span></div>'+
+        '<div class="gauges" id="sysGauges"></div><div id="sysTrend" style="margin-top:6px"></div>'+
+        '<div class="chart-leg" id="sysLeg"></div></div>'+
+        '<div class="card" style="margin:0"><div style="font-weight:500;margin-bottom:10px">近 7 天调用 TOP10</div>'+
+        ((d.topApis||[]).length?hbars((d.topApis||[]).map(function(r){return{label:r.api_path,v:r.cnt}})):'<div class="hint">暂无调用数据</div>')+'</div>'+
+      '</div><div style="height:14px"></div>'+
+      '<div class="card"><div class="row"><b>今日概况</b> <span class="hint">最近调用 '+esc(tr.day_label||'-')+'</span></div>'+
+      '<table><tr><th>今日调用</th><th>今日失败</th><th>缓存条数</th><th>缓存上限</th><th>CPU 使用率</th><th>内存使用率</th><th>运行时长</th></tr>'+
+      '<tr><td>'+d.logToday+'</td><td style="color:'+(d.logFailToday>0?'var(--err)':'inherit')+'">'+d.logFailToday+'</td>'+
+      '<td>'+d.cache.size+'</td><td>'+d.cache.maxEntries+'</td>'+
+      '<td id="dashCpu">-</td><td id="dashMem">-</td><td>'+esc(sys.uptimeText)+'</td></tr></table></div>';
+      paintSys(sys);
+      startSys();
+    })
+  }
+  else if(view==='ds'){renderDs()}
+  else if(view==='api'){renderApi()}
+  else if(view==='app'){renderApp()}
+  else if(view==='log'){renderLog()}
+  else if(view==='doc'){renderDoc()}
+  else if(view==='meta'){renderMeta()}
+  else if(view==='asset'){renderAsset()}
+  else if(view==='mask'){renderMask()}
+  else if(view==='sub'){renderSub()}
+  else if(view==='approval'){renderApproval()}
+  else if(view==='monitor'){renderMonitor()}
+  else if(view==='batch'){renderBatch()}
+  else if(view==='oplog'){loadOplog()}
+  else if(view==='biz'){renderBiz()}
+  else if(view==='portal'){renderPortal()}
+  else if(view==='user'){renderUser()}
+  else if(view==='config'){renderConfig()}
+}
+/* 通用弹窗/工具 */
+function modal(title,html,w){$('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal" style="width:'+(w||720)+'px"><h3>'+title+'</h3>'+html+'</div></div>')}
+function closeModal(){var ms=document.querySelectorAll('.modal-mask');if(ms.length)ms[ms.length-1].remove()}
+function pager(total,page,fn){var ps=15,max=Math.max(1,Math.ceil(total/ps));
+  return '<div class="pager">共 '+total+' 条 <button class="btn sm gray" onclick="'+fn+'(-1)">上一页</button> '+page+'/'+max+
+  ' <button class="btn sm gray" onclick="'+fn+'(1)">下一页</button></div>'}
+function lvlTag(l){var m={'-1':'未识别','0':'公开','1':'内部','2':'敏感','3':'机密'};
+  return '<span class="tag '+(l>=3?'off':(l>=2?'warn':'on'))+'">'+(m[String(l)]||l)+'</span>'}
+function stat(label,v,color){return '<div class="stat"><b style="color:'+(color||'#1f2d3d')+'">'+esc(v==null?'-':v)+'</b><span>'+label+'</span></div>'}
+function bigStat(label,v,ico,bg){return '<div class="stat big" style="background:'+bg+'"><div class="ico">'+ico+'</div><b>'+esc(v==null?'-':v)+'</b><span>'+label+'</span></div>'}
+
+/* ---------- SVG 图表组件库（零依赖） ---------- */
+var GCOLORS=['#2b6de8','#18a058','#e2a03f','#d43a3a','#7b52e8','#0aa2a2'];
+function fmtB(n){n=+n||0;if(n<1024)return n+'B';var u=['KB','MB','GB','TB'],i=-1;do{n/=1024;i++}while(n>=1024&&i<3);return n.toFixed(1)+u[i]}
+function lineChart(series,labels,opts){
+  opts=opts||{};var W=680,H=230,P={l:52,r:14,t:16,b:26};
+  var maxv=0;series.forEach(function(s){s.data.forEach(function(v){if(v>maxv)maxv=v})});
+  if(opts.unit==='pct')maxv=Math.max(20,Math.ceil((maxv+5)/10)*10);
+  if(maxv<=0)maxv=10;
+  var iw=W-P.l-P.r,ih=H-P.t-P.b,n=(series[0]?series[0].data:[]).length;
+  var gId='lg'+(lineChart._id=(lineChart._id||0)+1);
+  var s='<defs>';
+  series.forEach(function(sr,i){s+='<linearGradient id="'+gId+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+sr.color+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+sr.color+'" stop-opacity="0"/></linearGradient>'});
+  s+='</defs>';
+  for(var i=0;i<=4;i++){var y=P.t+ih*i/4;var v=Math.round(maxv*(4-i)/4*10)/10;
+    s+='<line x1="'+P.l+'" y1="'+y+'" x2="'+(W-P.r)+'" y2="'+y+'" stroke="#eef2f8"/>'+
+       '<text x="'+(P.l-7)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="#7a8ba3">'+v+'</text>'}
+  var step=Math.max(1,Math.ceil(n/6));
+  for(var i=0;i<n;i+=step){var x=P.l+iw*(n<2?0:i/(n-1));
+    s+='<text x="'+x+'" y="'+(H-7)+'" text-anchor="middle" font-size="10" fill="#7a8ba3">'+esc(labels[i]||'')+'</text>'}
+  series.forEach(function(sr,si){
+    var pts=sr.data.map(function(v,i){var x=P.l+iw*(n<2?0:i/(n-1));var y=Math.max(P.t,Math.min(P.t+ih,P.t+ih*(1-v/maxv)));return x.toFixed(1)+','+y.toFixed(1)}).join(' ');
+    if(!opts.noArea&&pts)s+='<polygon points="'+P.l+','+(P.t+ih)+' '+pts+' '+(P.l+iw*(n<2?1:(n-1)/(n-1)))+','+(P.t+ih)+'" fill="url(#'+gId+si+')"/>';
+    if(pts)s+='<polyline points="'+pts+'" fill="none" stroke="'+sr.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    sr.data.forEach(function(v,i){var x=P.l+iw*(n<2?0:i/(n-1));var y=Math.max(P.t,Math.min(P.t+ih,P.t+ih*(1-v/maxv)));
+      s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.4" fill="'+sr.color+'"/>'});
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+s+'</svg>';
+}
+function donut(parts,centerLabel){
+  var tot=0;parts.forEach(function(p){tot+=p.v});
+  var r=42,c=2*Math.PI*r,off=0;
+  var s='<svg viewBox="0 0 110 110" style="width:175px">';
+  parts.forEach(function(p){var f=tot>0?p.v/tot:0;
+    if(f>0){s+='<circle cx="55" cy="55" r="42" fill="none" stroke="'+p.color+'" stroke-width="15" stroke-dasharray="'+(f*c-1)+' '+c+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 55 55)"/>';off+=f*c}});
+  s+='<text x="55" y="53" text-anchor="middle" font-size="19" font-weight="600" fill="#1f2d3d">'+tot+'</text>'+
+     '<text x="55" y="67" text-anchor="middle" font-size="9" fill="#7a8ba3">'+esc(centerLabel||'')+'</text></svg>';
+  s+='<div class="chart-leg" style="justify-content:center">'+parts.map(function(p){return '<span><i class="dot" style="background:'+p.color+'"></i>'+p.n+' '+p.v+'</span>'}).join('')+'</div>';
+  return s;
+}
+function hbars(items,color){
+  var mx=0;items.forEach(function(x){mx=Math.max(mx,x.v)});
+  return items.map(function(x,i){return '<div class="hbar"><div class="lb" title="'+esc(x.label)+'">'+esc(x.label)+'</div>'+
+    '<div class="tr"><div class="fl" style="width:'+(mx>0?Math.round(x.v*100/mx):0)+'%;background:linear-gradient(90deg,'+(color||GCOLORS[i%GCOLORS.length])+',#5aa0ff)"></div></div>'+
+    '<div class="vl">'+x.v+'</div></div>'}).join('')
+}
+function gauge(label,pct,color,sub){
+  pct=Math.max(0,Math.min(100,+pct||0));
+  var r=34,c=2*Math.PI*r,off=c*(1-pct/100);
+  return '<div class="gauge"><svg viewBox="0 0 90 92"><circle cx="45" cy="45" r="34" fill="none" stroke="#eef2f8" stroke-width="9"/>'+
+  '<circle cx="45" cy="45" r="34" fill="none" stroke="'+color+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 45 45)"/>'+
+  '<text x="45" y="43" text-anchor="middle" font-size="14" font-weight="600" fill="#1f2d3d">'+pct+'%</text>'+
+  '<text x="45" y="58" text-anchor="middle" font-size="9" fill="#7a8ba3">'+esc(label)+'</text></svg>'+
+  (sub?'<div class="hint" style="text-align:center;margin-top:-4px">'+sub+'</div>':'')+'</div>'
+}
+function pctColor(p){return p>=85?'#d43a3a':(p>=65?'#e2a03f':'#18a058')}
+
+/* ---------- 服务器系统指标（仪表盘/监控页共用，10 秒自动刷新） ---------- */
+var sysTimer=null;
+function startSys(){stopSys();sysTimer=setInterval(function(){api(API+'/sys/metrics').then(paintSys).catch(function(){})},10000)}
+function stopSys(){if(sysTimer){clearInterval(sysTimer);sysTimer=null}}
+function paintSys(sys){
+  if(!sys||!sys.cores)return;
+  var g=$('#sysGauges');if(!g)return;
+  g.innerHTML=gauge('CPU 使用率',sys.sysCpu,pctColor(sys.sysCpu),sys.cores+' 核 · 负载 '+sys.sysLoadAvg)+
+    gauge('进程 CPU',sys.procCpu,pctColor(sys.procCpu),'本服务')+
+    gauge('物理内存',sys.memPct,pctColor(sys.memPct),fmtB(sys.memUsed)+' / '+fmtB(sys.memTotal))+
+    gauge('JVM 堆',sys.heapPct,pctColor(sys.heapPct),fmtB(sys.heapUsed)+' / '+fmtB(sys.heapMax));
+  var st=$('#sysTrend');
+  if(st){
+    var h=(sys.history||[]).slice(-60);
+    var labels=h.map(function(p){return p.t});
+    st.innerHTML=lineChart([
+      {name:'CPU %',color:'#2b6de8',data:h.map(function(p){return p.cpu||0})},
+      {name:'内存 %',color:'#18a058',data:h.map(function(p){return p.mem||0})},
+      {name:'JVM堆 %',color:'#7b52e8',data:h.map(function(p){return p.heap||0})}
+    ],labels,{unit:'pct',noArea:true});
+    var lg=$('#sysLeg');
+    if(lg)lg.innerHTML='<span><i class="dot" style="background:#2b6de8"></i>CPU %</span><span><i class="dot" style="background:#18a058"></i>内存 %</span><span><i class="dot" style="background:#7b52e8"></i>JVM堆 %</span>';
+  }
+  var tm=$('#sysTime');if(tm)tm.textContent='更新于 '+sys.time+' · 运行 '+sys.uptimeText;
+  var dc=$('#dashCpu');if(dc)dc.textContent=sys.sysCpu+'%';
+  var dm=$('#dashMem');if(dm)dm.textContent=sys.memPct+'%';
+  /* 网关流量趋势（近 60 分钟，每 10 秒一点） */
+  var qt=$('#sysQps');
+  if(qt){var h2=(sys.history||[]).slice(-60);
+    qt.innerHTML=lineChart([
+      {name:'调用量(次/分)',color:'#0aa2a2',data:h2.map(function(p){return p.qps||0})},
+      {name:'平均耗时(ms)',color:'#e2a03f',data:h2.map(function(p){return p.cost||0})}
+    ],h2.map(function(p){return p.t}),{noArea:true});
+    var ql=$('#sysQpsLeg');if(ql)ql.innerHTML='<span><i class="dot" style="background:#0aa2a2"></i>调用量(次/分)</span><span><i class="dot" style="background:#e2a03f"></i>平均耗时(ms)</span>'}
+  /* JVM 与线程 */
+  var jv=$('#sysJvm');
+  if(jv)jv.innerHTML='<div class="hbar"><div class="lb">JVM 堆内存</div><div class="tr"><div class="fl" style="width:'+sys.heapPct+'%;background:linear-gradient(90deg,#7b52e8,#a97fff)"></div></div><div class="vl">'+fmtB(sys.heapUsed)+'/'+fmtB(sys.heapMax)+'</div></div>'+
+    '<div class="hbar"><div class="lb">活跃线程</div><div class="tr"><div class="fl" style="width:'+Math.min(100,sys.threadCount/4)+'%;background:linear-gradient(90deg,#2b6de8,#5aa0ff)"></div></div><div class="vl">'+sys.threadCount+' (峰值'+sys.threadPeak+')</div></div>'+
+    '<div class="hbar"><div class="lb">GC 累计</div><div class="tr"><div class="fl" style="width:'+Math.min(100,sys.gcCount/10)+'%;background:linear-gradient(90deg,#0e9f6e,#3ecf7e)"></div></div><div class="vl">'+sys.gcCount+' 次 / '+Math.round(sys.gcTimeMs/100)/10+'s</div></div>'+
+    '<div class="hint">守护线程 '+sys.daemonCount+' · GC 频率 '+sys.gcPerMin+' 次/分 · 进程内存 '+fmtB(sys.procMem)+'</div>';
+  /* 磁盘 */
+  var dk=$('#sysDisks');
+  if(dk)dk.innerHTML='<table><tr><th>挂载点</th><th>总容量</th><th>已用</th><th>可用</th><th>使用率</th></tr>'+
+    (sys.disks||[]).map(function(r){var c=r.pct>=90?'e':(r.pct>=75?'w':'');
+      return '<tr><td>'+esc(r.mount)+'</td><td>'+fmtB(r.total)+'</td><td>'+fmtB(r.used)+'</td><td>'+fmtB(r.free)+'</td>'+
+      '<td><span class="dprog '+c+'"><i style="width:'+r.pct+'%"></i></span>'+r.pct+'%</td></tr>'}).join('')+'</table>';
+}
+
+/* ---------- 数据源 ---------- */
+var DSTYPES=[['mysql','MySQL'],['oceanbase','OceanBase(MySQL模式)'],['oracle','Oracle'],['gbase8a','GBase 8a'],['redis','Redis'],['h2','H2(内置演示)']]
+function renderDs(){
+  api(API+'/ds/list').then(function(d){cache.ds=d.rows||[];
+    $('#main').innerHTML='<h2>数据源管理 <button class="btn sm" onclick="dsModal()">+ 新建数据源</button></h2>'+
+    '<div class="card"><table><tr><th>ID</th><th>名称</th><th>类型</th><th>地址</th><th>库/Schema</th><th>池</th><th>状态</th><th>操作</th></tr>'+
+    cache.ds.map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.ds_name)+'</td><td>'+esc(r.ds_type)+'</td>'+
+      '<td>'+esc(r.host)+':'+r.port+'</td><td>'+esc(r.db_name||'-')+'</td><td>'+r.pool_size+'</td>'+
+      '<td>'+(r.status==1?'<span class="tag on">启用</span>':'<span class="tag off">停用</span>')+'</td>'+
+      '<td><button class="btn sm green" onclick="testDs('+r.id+')">测试</button> '+
+      '<button class="btn sm" onclick="dsModal('+r.id+')">编辑</button> '+
+      '<button class="btn sm red" onclick="delDs('+r.id+')">删除</button></td></tr>'}).join('')+'</table></div>'})
+}
+function dsModal(id){
+  var d=id?cache.ds.filter(function(x){return x.id===id})[0]||{}:{ds_type:'mysql',port:3306,pool_size:5,timeout_sec:60,read_only:1,status:1};
+  $('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal">'+
+  '<h3>'+(id?'编辑数据源':'新建数据源')+'</h3><div class="frm"><div class="grid2">'+
+  fld('ds_name','数据源名称',d.ds_name)+fldSel('ds_type','类型',DSTYPES,d.ds_type,'onDsType()')+'</div><div class="grid2">'+
+  fld('host','主机',d.host)+fld('port','端口',d.port)+'</div><div class="grid2">'+
+  fld('db_name','数据库/Schema/Service',d.db_name)+fld('params','附加连接参数(JDBC串后缀)',d.params)+'</div><div class="grid2">'+
+  fld('username','用户名',d.username)+fld('password','密码','')+'</div><div class="grid2">'+
+  fld('pool_size','连接池大小',d.pool_size)+fld('timeout_sec','超时(秒)',d.timeout_sec)+'</div><div class="grid2">'+
+  fldSel('read_only','网关只读',[['1','只读(推荐)'],['0','可写']],d.read_only)+fldSel('status','状态',[['1','启用'],['0','停用']],d.status)+'</div>'+
+  '</div><div class="row" style="margin-top:14px"><button class="btn" onclick="saveDs('+ (id||0) +')">保存</button> '+
+  '<button class="btn gray" onclick="testDsForm()">测试连接</button> '+
+  '<button class="btn gray" onclick="this.closest(\'.modal-mask\').remove()">取消</button></div></div></div>');
+  onDsType()
+}
+function fld(name,label,val,extra){return '<div><label>'+label+'</label><input id="f_'+name+'" value="'+esc(val==null?'':val)+'" '+ (extra||'') +'></div>'}
+function fldSel(name,label,opts,val,fn){return '<div><label>'+label+'</label><select id="f_'+name+'" '+(fn?'onchange="'+fn+'"':'')+'>'+
+  opts.map(function(o){var v=o[0],t=o[1];return '<option value="'+v+'"'+(String(val)===String(v)?' selected':'')+'>'+t+'</option>'}).join('')+'</select></div>'}
+function onDsType(){var t=$('#f_ds_type').value;
+  $('#f_port').value={mysql:3306,oceanbase:2881,oracle:1521,gbase8a:5258,redis:6379,h2:0}[t]||3306;
+  $('#f_port').parentElement.style.display=t==='h2'?'none':'';
+  $('#f_db_name').previousElementSibling.textContent=
+    t==='oracle'?'服务名/SID':(t==='redis'?'库编号(可空)':(t==='h2'?'H2 连接串(如 ./data/dsp_meta)':'数据库名'))}
+function formJson(prefix){var o={};document.querySelectorAll('[id^="'+prefix+'"]').forEach(function(el){
+  o[el.id.slice(2)]=el.type==='password'?(el.value||undefined):el.value});return o}
+function saveDs(id){
+  var body=formJson('f_');if(id)body.id=id;
+  api(API+'/ds/save',body,'POST').then(function(){toast('保存成功',true);$('.modal-mask').remove();render()}).catch(function(){})
+}
+function testDs(id){
+  var d=cache.ds.filter(function(x){return x.id===id})[0];if(!d)return;
+  req(API+'/ds/test',{id:d.id,ds_type:d.ds_type,host:d.host,port:d.port,db_name:d.db_name,username:d.username,password:''},'POST')
+  .then(function(r){toast(r.code===0?(r.data||'连接成功'):r.message,r.code===0)})
+}
+function testDsForm(){var body=formJson('f_');req(API+'/ds/test',body,'POST').then(function(r){toast(r.code===0?(r.data||'连接成功'):r.message,r.code===0)})}
+function delDs(id){if(!confirm('确认删除该数据源？'))return;api(API+'/ds/delete/'+id,{},'POST').then(function(){toast('已删除',true);render()})}
+
+/* ---------- API 管理 ---------- */
+function renderApi(){
+  api(API+'/api/list').then(function(d){cache.apis=d.rows||[];
+    $('#main').innerHTML='<h2>API 服务管理 <button class="btn sm" onclick="apiWizard()">+ 向导式创建</button> '+
+    '<button class="btn sm green" onclick="apiSqlModal()">+ SQL 代码式创建</button> '+
+    '<button class="btn sm gray" onclick="apiRedisModal()">+ Redis 服务</button></h2>'+
+    '<div class="card"><table><tr><th>ID</th><th>名称</th><th>路径</th><th>模式</th><th>鉴权</th><th>缓存</th><th>限流</th><th>状态</th><th>操作</th></tr>'+
+    cache.apis.map(function(r){
+      var mode={wizard:'向导式',sql:'SQL式',redis:'Redis'}[r.mode]||r.mode;
+      return '<tr><td>'+r.id+'</td><td>'+esc(r.api_name)+'</td><td><code>/dsapi/'+esc(r.api_path)+'</code></td><td>'+mode+'</td>'+
+      '<td>'+(r.auth_type==='open'?'开放':'应用签名')+'</td><td>'+(r.cache_ttl||0)+'s</td><td>'+(r.rate_limit||'默认')+'/分</td>'+
+      '<td>'+(r.status==1?'<span class="tag on">启用</span>':'<span class="tag off">停用</span>')+(r.env_status==='PUBLISHED'?' <span class="tag on">已发布</span>':'')+'</td>'+
+      '<td><button class="btn sm green" onclick="dryRun('+r.id+')">试运行</button> '+
+      '<button class="btn sm" onclick="editApi('+r.id+')">编辑</button> '+
+      '<button class="btn sm" onclick="apiVersions('+r.id+')">版本</button> '+
+      '<button class="btn sm '+(r.env_status==='PUBLISHED'?'gray':'green')+'" onclick="pubApi('+r.id+')">'+(r.env_status==='PUBLISHED'?'下线':'发布')+'</button> '+
+      '<button class="btn sm red" onclick="delApi('+r.id+')">删除</button></td></tr>'}).join('')+'</table></div>'})
+}
+function pubApi(id){
+  var a=cache.apis.filter(function(x){return x.id===id})[0];
+  if(a&&a.env_status==='PUBLISHED'){
+    api(API+'/api/offline/'+id,{},'POST').then(function(){toast('已下线',true);render()})}
+  else{api(API+'/api/publish/'+id,{},'POST').then(function(){toast('已提交发布',true);render()})}
+}
+function apiVersions(id){
+  api(API+'/api/versions/'+id).then(function(rows){
+    modal('版本历史 - API #'+id,'<table><tr><th>版本</th><th>变更人</th><th>说明</th><th>时间</th><th>操作</th></tr>'+
+    (rows||[]).map(function(v){return '<tr><td>'+esc(v.version)+'</td><td>'+esc(v.changed_by||'')+'</td><td>'+esc(v.change_desc||'')+'</td><td>'+esc(v.create_time||'')+'</td>'+
+    '<td><button class="btn sm green" onclick="rollbackApi('+id+',\''+esc(v.version)+'\')">回滚</button></td></tr>'}).join('')+'</table>',760)})
+}
+function rollbackApi(id,ver){if(!confirm('确认回滚到版本 '+ver+' ？'))return;
+  api(API+'/api/rollback/'+id+'/'+ver,{},'POST').then(function(m){toast(typeof m==='string'?m:'已回滚',true);render()})}
+function delApi(id){if(!confirm('确认删除该 API？'))return;api(API+'/api/delete/'+id,{},'POST').then(function(){toast('已删除',true);render()})}
+function dsOptions(){return cache.ds.filter(function(d){return d.ds_type!=='redis'}).map(function(d){return [d.id,d.ds_name+' ('+d.ds_type+')']})}
+function apiCommonFields(a,extra){
+  a=a||{};
+  return '<div class="grid2">'+fld('api_name','API 名称',a.api_name)+fld('api_path','调用路径(/dsapi/后缀)',a.api_path)+'</div>'+
+  '<div class="grid2">'+fldSel('method','方法',[['POST','POST'],['GET','GET']],a.method||'POST')+
+  fldSel('ds_id','数据源',dsOptions(),a.ds_id)+'</div><div class="grid2">'+
+  fldSel('auth_type','鉴权方式',[['app','应用签名(AppKey/AppSecret)'],['open','开放(免签)']],a.auth_type||'app')+
+  fldSel('status','状态',[['1','启用'],['0','停用']],a.status==null?1:a.status)+'</div><div class="grid2">'+
+  fld('cache_ttl','结果缓存(秒,0不缓存)',a.cache_ttl==null?0:a.cache_ttl)+
+  fld('rate_limit','限流(次/分,0用默认)',a.rate_limit==null?0:a.rate_limit)+'</div>'+
+  fld('remark','备注',a.remark)+(extra||'')
+}
+function collectApi(){
+  var b=formJson('f_');
+  b.cache_ttl=+b.cache_ttl||0;b.rate_limit=+b.rate_limit||0;
+  if(window._params&&window._params.length)b.params_json=JSON.stringify(window._params);
+  if(window._wizard)b.wizard_json=JSON.stringify(window._wizard);
+  if(window._redis)b.redis_json=JSON.stringify(window._redis);
+  return b
+}
+function afterSave(res){toast('保存成功，路径: /dsapi/'+res.api_path,true);$('.modal-mask').remove();render()}
+
+/* --- SQL 代码式 --- */
+function apiSqlModal(id){
+  loadDsThen(function(){
+    var a=id?cache.apis.filter(function(x){return x.id===id})[0]||{}:{};
+    $('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal" style="width:860px">'+
+    '<h3>'+(id?'编辑':'新建')+' SQL 代码式 API</h3>'+
+    '<div class="frm" id="sqlForm">'+apiCommonFields(a)+'</div>'+
+    '<label style="display:block;font-size:12px;color:var(--t2);margin:10px 0 4px">SQL 语句（参数用 #{name} 占位，仅允许 SELECT/WITH）</label>'+
+    '<textarea id="f_sqlText" rows="6" placeholder="SELECT id, name, amount FROM orders&#10;WHERE status = #{status} AND create_time >= #{beginDate}">'+esc(a.sql_text||'')+'</textarea>'+
+    '<div class="row" style="margin-top:8px"><span class="hint">从语句解析参数：</span><button class="btn sm gray" onclick="parseSqlParams()">解析参数</button>'+
+    '<span class="hint">支持 _pageNo / _pageSize 分页参数（OceanBase/MySQL/GBase 用 LIMIT，Oracle 自动 ROWNUM 包装）</span></div>'+
+    '<div id="paramArea">'+paramTable()+'</div>'+
+    '<div class="row" style="margin-top:12px"><button class="btn" onclick="saveSqlApi('+(id||0)+')">保存</button> '+
+    '<button class="btn green" onclick="previewSql()">执行预览</button> '+
+    '<button class="btn gray" onclick="this.closest(\'.modal-mask\').remove()">取消</button></div>'+
+    '<div id="previewResult" style="margin-top:10px"></div></div></div>');
+    window._params=a.params_json?JSON.parse(a.params_json):[];
+    renderParams()
+  })
+}
+function loadDsThen(fn){ if(cache.ds.length){fn();return}
+  api(API+'/ds/list').then(function(d){cache.ds=d.rows||[];fn()}) }
+function parseSqlParams(){
+  var sql=$('#f_sqlText').value, re=/#\{(\w+)\}/g, set={}, arr=[];
+  var m;while((m=re.exec(sql))){if(!set[m[1]]){set[m[1]]=1;arr.push({name:m[1],type:'string',required:false,defaultValue:'',desc:''})}}
+  window._params=arr;renderParams();toast('解析出 '+arr.length+' 个参数',true)
+}
+function paramTable(){
+  return '<table style="margin-top:8px"><tr><th>参数名</th><th>类型</th><th>必填</th><th>默认值</th><th>说明</th></tr><tbody id="paramRows"></tbody></table>'
+}
+function renderParams(){
+  $('#paramArea').innerHTML=paramTable();
+  var tb=$('#paramRows');(window._params||[]).forEach(function(p,i){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(p.name)+'</td><td><select onchange="window._params['+i+'].type=this.value">'+
+      ['string','number','date'].map(function(t){return '<option '+(p.type===t?'selected':'')+'>'+t+'</option>'}).join('')+'</select></td>'+
+      '<td><input type="checkbox" '+(p.required?'checked':'')+' onchange="window._params['+i+'].required=this.checked"></td>'+
+      '<td><input value="'+esc(p.defaultValue)+'" oninput="window._params['+i+'].defaultValue=this.value"></td>'+
+      '<td><input value="'+esc(p.desc||'')+'" oninput="window._params['+i+'].desc=this.value" style="width:98%"></td>';
+    tb.appendChild(tr)})
+}
+function previewSql(){
+  var body={dsId:+$('#f_ds_id').value,sql:$('#f_sqlText').value,params:{}};
+  (window._params||[]).forEach(function(p){var v=p.defaultValue;if(v!==''&&v!=null)body.params[p.name]=v});
+  req(API+'/api/preview',body,'POST').then(function(r){
+    $('#previewResult').innerHTML=r.code===0?tableHtml(r.data):'<div style="color:var(--err)">'+esc(r.message)+'</div>'})
+}
+function saveSqlApi(id){
+  var b=collectApi();b.mode='sql';b.sqlText=$('#f_sqlText').value;if(id)b.id=id;
+  req(API+'/api/save',b,'POST').then(function(r){toast('保存成功',true);$('.modal-mask').remove();render()}).catch(function(){})
+}
+function tableHtml(data){
+  if(!data||!data.columns)return '<div class="hint">（无结果）</div>';
+  return '<div style="max-height:280px;overflow:auto"><table><tr>'+data.columns.map(function(c){return '<th>'+esc(c)+'</th>'}).join('')+'</tr>'+
+  (data.rows||[]).map(function(r){return '<tr>'+data.columns.map(function(c){return '<td>'+esc(r[c])+'</td>'}).join('')+'</tr>'}).join('')+'</table></div>'
+}
+
+/* --- 向导式 --- */
+function apiWizard(id){
+  loadDsThen(function(){
+    var a=id?cache.apis.filter(function(x){return x.id===id})[0]||{}:{};
+    $('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal" style="width:860px">'+
+    '<h3>'+(id?'编辑':'新建')+' 向导式 API</h3><div class="steps" id="wizSteps">'+
+    ['1.基本信息','2.选择表','3.选择字段','4.查询条件','5.排序分组','6.参数与发布'].map(function(s,i){return '<div class="'+(i===0?'act':'')+'" onclick="wizStep('+i+')">'+s+'</div>'}).join('')+'</div>'+
+    '<div id="wizBody" class="frm"></div>'+
+    '<div class="row" style="margin-top:14px"><button class="btn gray" id="wizPrev" onclick="wizStep(window._step-1)">上一步</button> '+
+    '<button class="btn" id="wizNext" onclick="wizStep(window._step+1)">下一步</button> '+
+    '<button class="btn green" id="wizSave" style="display:none" onclick="saveWizard('+(id||0)+')">保存发布</button> '+
+    '<button class="btn gray" onclick="this.closest(\'.modal-mask\').remove()">取消</button></div></div></div>');
+    window._step=0;window._wizard=JSON.parse(a.wizard_json||'{"fields":["*"],"conditions":[]}');
+    window._params=a.params_json?JSON.parse(a.params_json):[];
+    window._apiBase=a;wizStep(0)
+  })
+}
+function wizStep(i){
+  var steps=['基本信息','选择表','选择字段','查询条件','排序分组','参数与发布'];
+  if(i<0||i>5)return;window._step=i;
+  document.querySelectorAll('#wizSteps div').forEach(function(d,j){d.classList.toggle('act',j===i)});
+  $('#wizPrev').style.display=i===0?'none':'';$('#wizNext').style.display=i===5?'none':'';
+  $('#wizSave').style.display=i===5?'':'none';
+  var w=window._wizard,b=$('#wizBody');
+  if(i===0){
+    b.innerHTML='<div class="grid2">'+fld('api_name','API 名称',window._apiBase.api_name)+
+      fld('api_path','调用路径(/dsapi/后缀)',window._apiBase.api_path)+'</div><div class="grid2">'+
+      fldSel('ds_id','数据源',dsOptions(),window._apiBase.ds_id,'wizLoadTables()')+'</div><div class="grid2">'+
+      fldSel('method','方法',[['POST','POST'],['GET','GET']],window._apiBase.method||'POST')+
+      fldSel('auth_type','鉴权方式',[['app','应用签名'],['open','开放(免签)']],window._apiBase.auth_type||'app')+'</div>'+
+      fld('remark','备注',window._apiBase.remark)
+  }else if(i===1){
+    b.innerHTML='<div class="row"><button class="btn sm" onclick="wizLoadTables()">加载表清单</button><span class="hint">从数据源读取表清单</span></div>'+
+      '<select id="wizTable" size="12" style="width:100%" onchange="window._wizard.table=this.value;window._wizard.fields=[\'*\'];wizLoadColumns()"></select>';
+    wizLoadTables()
+  }else if(i===2){
+    b.innerHTML='<div class="row"><button class="btn sm" onclick="wizSelAll()">全选</button> <button class="btn sm gray" onclick="window._wizard.fields=[\'*\'];toast(\'已选全部字段\',true)">SELECT *</button></div>'+
+      '<div id="wizCols" style="display:flex;flex-wrap:wrap;gap:6px"></div>'+
+      '<div class="hint" style="margin-top:8px">不选任何字段 = SELECT *；点击字段切换选中状态</div>';
+    wizLoadColumns()
+  }else if(i===3){
+    b.innerHTML='<div class="row"><button class="btn sm" onclick="addCond()">+ 添加条件</button>'+
+      '<span class="hint">参数为空且非必填时，该条件自动跳过</span></div><div id="condArea"></div>';
+    renderConds()
+  }else if(i===4){
+    b.innerHTML='<div class="grid2">'+fld('groupBy','GROUP BY(逗号分隔)',w.groupBy)+fld('having','HAVING(管理员填写)',w.having)+'</div>'+
+      fld('orderBy','ORDER BY(如 create_time DESC, amount ASC)',w.orderBy)+
+      '<div class="hint" style="margin-top:6px">调用方传 _pageNo / _pageSize 即自动分页</div>'
+  }else{
+    b.innerHTML='<div class="grid2">'+fld('cache_ttl','结果缓存(秒,0不缓存)',window._apiBase.cache_ttl||0)+
+      fld('rate_limit','限流(次/分,0用默认)',window._apiBase.rate_limit||0)+'</div>'+
+      '<div class="row"><button class="btn sm gray" onclick="wizSyncParams()">从条件生成参数表</button></div>'+
+      '<div id="paramArea">'+paramTable()+'</div>';
+    renderParams()
+  }
+}
+function wizLoadTables(){
+  var dsId=+$('#f_ds_id').value;if(!dsId)return;
+  api(API+'/ds/tables/'+dsId).then(function(tables){
+    var sel=$('#wizTable');if(!sel)return;
+    sel.innerHTML=tables.map(function(t){return '<option '+(window._wizard.table===t?'selected':'')+'>'+esc(t)+'</option>'}).join('');
+    if(tables.length&&!window._wizard.table){window._wizard.table=tables[0]}
+  }).catch(function(){})
+}
+function wizLoadColumns(){
+  var dsId=+$('#f_ds_id').value,table=window._wizard.table;if(!dsId||!table)return;
+  api(API+'/ds/columns/'+dsId+'?table='+encodeURIComponent(table)).then(function(cols){
+    window._cols=cols;
+    var box=$('#wizCols');if(!box)return;
+    box.innerHTML=cols.map(function(c){
+      var sel=window._wizard.fields.indexOf(c.name)>=0;
+      return '<span class="tag '+(sel?'on':'off')+'" style="cursor:pointer;padding:4px 10px" onclick="togCol(\''+esc(c.name)+'\',this)">'+
+        esc(c.name)+' <small style="opacity:.7">'+esc(c.type||'')+'</small></span>'}).join('')
+  }).catch(function(){})
+}
+function wizSelAll(){window._wizard.fields=(window._cols||[]).map(function(c){return c.name});wizLoadColumns()}
+function togCol(name,el){
+  var fs=window._wizard.fields,ix=fs.indexOf(name);
+  if(ix>=0){fs.splice(ix,1);el.className='tag off'}else{fs.push(name);el.className='tag on'}
+}
+function renderConds(){
+  var area=$('#condArea');if(!area)return;
+  area.innerHTML=(window._wizard.conditions||[]).map(function(c,i){
+    return '<div class="cond-row"><select onchange="window._wizard.conditions['+i+'].field=this.value">'+
+      '<option value="">字段</option>'+(window._cols||[]).map(function(col){return '<option '+(c.field===col.name?'selected':'')+'>'+esc(col.name)+'</option>'}).join('')+'</select>'+
+      '<select onchange="window._wizard.conditions['+i+'].op=this.value">'+
+      ['=','!=','>','>=','<','<=','LIKE','IN','NOT IN','BETWEEN','IS NULL','IS NOT NULL'].map(function(o){return '<option '+(c.op===o?'selected':'')+'>'+o+'</option>'}).join('')+'</select>'+
+      '<input placeholder="参数名" value="'+esc(c.param||'')+'" oninput="window._wizard.conditions['+i+'].param=this.value" style="width:120px">'+
+      '<label class="hint"><input type="checkbox" '+(c.required?'checked':'')+' onchange="window._wizard.conditions['+i+'].required=this.checked">必填</label>'+
+      '<input placeholder="默认值" value="'+esc(c.defaultValue==null?'':c.defaultValue)+'" oninput="window._wizard.conditions['+i+'].defaultValue=this.value" style="width:100px">'+
+      '<button class="btn sm red" onclick="window._wizard.conditions.splice('+i+',1);renderConds()">删</button></div>'}).join('')
+}
+function addCond(){window._wizard.conditions=window._wizard.conditions||[];window._wizard.conditions.push({field:'',op:'=',param:'',required:false});renderConds()}
+function wizSyncParams(){
+  var set={},arr=[];
+  (window._wizard.conditions||[]).forEach(function(c){
+    if(c.param&&!set[c.param]){set[c.param]=1;arr.push({name:c.param,type:'string',required:!!c.required,defaultValue:c.defaultValue||'',desc:c.field+' '+c.op})}});
+  window._params=arr;renderParams();toast('已生成 '+arr.length+' 个参数',true)
+}
+function saveWizard(id){
+  if(!window._wizard.table){toast('请先在第2步选择表',false);return}
+  var b=formJson('f_');b.mode='wizard';
+  b.wizard_json=JSON.stringify(window._wizard);
+  if(window._params.length)b.params_json=JSON.stringify(window._params);
+  if(id)b.id=id;
+  req(API+'/api/save',b,'POST').then(function(){toast('发布成功',true);$('.modal-mask').remove();render()}).catch(function(){})
+}
+
+/* --- Redis 服务 --- */
+var REDIS_CMDS=['GET','HGET','HGETALL','LRANGE','SMEMBERS','ZREVRANGE','SCAN','TTL','EXISTS'];
+function apiRedisModal(id){
+  loadDsThen(function(){
+    var a=id?cache.apis.filter(function(x){return x.id===id})[0]||{}:{};
+    var r=a.redis_json?JSON.parse(a.redis_json):{command:'GET',keyTemplate:''};
+    $('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal">'+
+    '<h3>'+(id?'编辑':'新建')+' Redis 数据服务</h3><div class="frm">'+
+    '<div class="grid2">'+fld('api_name','API 名称',a.api_name)+fld('api_path','调用路径',a.api_path)+'</div><div class="grid2">'+
+    fldSel('ds_id','Redis 数据源',cache.ds.filter(function(d){return d.ds_type==='redis'}).map(function(d){return [d.id,d.ds_name]}),a.ds_id)+'</div><div class="grid2">'+
+    fldSel('command','命令',REDIS_CMDS.map(function(c){return[c,c]}),r.command)+fld('keyTemplate','Key 模板(支持 {参数名})',r.keyTemplate)+'</div>'+
+    fld('fieldTemplate','Hash Field 模板(HGET 用)',r.fieldTemplate)+
+    fld('remark','备注',a.remark)+'</div>'+
+    '<div class="row" style="margin-top:12px"><button class="btn" onclick="saveRedis('+(id||0)+')">保存</button>'+
+    '<button class="btn gray" onclick="this.closest(\'.modal-mask\').remove()">取消</button></div></div></div>')
+  })
+}
+function saveRedis(id){
+  var b=formJson('f_');b.mode='redis';
+  b.redis_json=JSON.stringify({command:$('#f_command').value,keyTemplate:$('#f_keyTemplate').value,fieldTemplate:$('#f_fieldTemplate').value});
+  if(id)b.id=id;
+  req(API+'/api/save',b,'POST').then(function(){toast('保存成功',true);$('.modal-mask').remove();render()}).catch(function(){})
+}
+
+/* --- 编辑分发 --- */
+function editApi(id){
+  var a=cache.apis.filter(function(x){return x.id===id})[0];
+  if(!a)return;
+  if(a.mode==='wizard')apiWizard(id);
+  else if(a.mode==='sql')apiSqlModal(id);
+  else apiRedisModal(id)
+}
+function dryRun(id){
+  var ps=prompt('输入调用参数(JSON, 可留空)，分页可传 {"_pageNo":1,"_pageSize":5}','{}');
+  if(ps===null)return;
+  var params={};try{params=JSON.parse(ps||'{}')}catch(e){toast('JSON 格式错误',false);return}
+  req(API+'/api/dryrun/'+id,params,'POST').then(function(r){
+    var html=r.code===0?(r.data&&r.data.rows!=null?tableHtml(r.data):'<pre>'+esc(JSON.stringify(r.data,null,2))+'</pre>'):'<div style="color:var(--err)">'+esc(r.message)+'</div>';
+    $('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal" style="width:860px"><h3>试运行结果 '+(r.fromCache?'(缓存)':'')+'</h3>'+html+'</div></div>')
+  })
+}
+
+/* ---------- 应用管理 ---------- */
+function renderApp(){
+  api(API+'/app/list').then(function(d){cache.apps=d.rows||[];
+    $('#main').innerHTML='<h2>应用与密钥 <button class="btn sm" onclick="appModal()">+ 新建应用</button></h2>'+
+    '<div class="card"><table><tr><th>ID</th><th>应用名</th><th>AppKey</th><th>AppSecret</th><th>IP白名单</th><th>API范围</th><th>状态</th><th>操作</th></tr>'+
+    cache.apps.map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.app_name)+'</td><td><code>'+esc(r.app_key)+'</code></td>'+
+      '<td><code style="color:var(--err)">'+esc(r.app_secret)+'</code></td><td>'+esc(r.ip_whitelist||'不限')+'</td><td>'+esc(r.api_scope||'全部')+'</td>'+
+      '<td>'+(r.status==1?'<span class="tag on">启用</span>':'<span class="tag off">停用</span>')+'</td>'+
+      '<td><button class="btn sm" onclick="appModal('+r.id+')">编辑</button> '+
+      '<button class="btn sm green" onclick="resetSecret('+r.id+')">重置密钥</button> '+
+      '<button class="btn sm red" onclick="delApp('+r.id+')">删除</button></td></tr>'}).join('')+'</table></div>'+
+    '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">调用方式</h3><pre style="background:#1e2a3d;color:#dbe4f0;padding:14px;border-radius:8px;overflow:auto">'+
+'POST http://localhost:8086/dsapi/{apiPath}\n'+
+'Header:\n'+
+'  X-App-Key: dsp-xxxxxx\n'+
+'  X-Timestamp: 1700000000000\n'+
+'  X-Sign: md5(appKey + appSecret + timestamp)\n'+
+'Body: {"status":"1","_pageNo":1,"_pageSize":20}\n\n'+
+'简单模式也可直接传 Header: X-App-Secret: xxx（生产建议用签名模式）</pre></div>'})
+}
+function appModal(id){
+  var d=id?cache.apps.filter(function(x){return x.id===id})[0]||{}:{};
+  $('#app').insertAdjacentHTML('beforeend','<div class="modal-mask" onclick="if(event.target===this)this.remove()"><div class="modal">'+
+  '<h3>'+(id?'编辑应用':'新建应用')+'</h3><div class="frm"><div class="grid2">'+
+  fld('app_name','应用名称',d.app_name)+fld('app_key','AppKey(留空自动生成)',d.app_key)+'</div><div class="grid2">'+
+  fld('app_secret','AppSecret(留空自动生成)',d.app_secret)+fld('ip_whitelist','IP 白名单(逗号分隔,空=不限)',d.ip_whitelist)+'</div>'+
+  '<label>API 范围(api_path 逗号分隔,空=全部)</label><textarea id="f_api_scope" rows="2">'+esc(d.api_scope||'')+'</textarea>'+
+  '<div class="grid2" style="margin-top:8px">'+fldSel('status','状态',[['1','启用'],['0','停用']],d.status==null?1:d.status)+fld('remark','备注',d.remark)+'</div>'+
+  '</div><div class="row" style="margin-top:14px"><button class="btn" onclick="saveApp('+(id||0)+')">保存</button>'+
+  '<button class="btn gray" onclick="this.closest(\'.modal-mask\').remove()">取消</button></div></div></div>')
+}
+function saveApp(id){var b=formJson('f_');if(id)b.id=id;
+  req(API+'/app/save',b,'POST').then(function(){toast('保存成功',true);$('.modal-mask').remove();render()}).catch(function(){})}
+function delApp(id){if(!confirm('确认删除该应用？'))return;api(API+'/app/delete/'+id,{},'POST').then(function(){toast('已删除',true);render()})}
+function resetSecret(id){if(!confirm('确认重置该应用的 AppSecret？旧密钥立即失效'))return;
+  api(API+'/app/resetSecret/'+id,{},'POST').then(function(s){toast('新密钥: '+s,true);render()})}
+
+/* ---------- 日志 ---------- */
+var logPage=1,logStatus='',logPath='';
+function renderLog(){
+  $('#main').innerHTML='<h2>调用日志</h2><div class="row">API路径 <input id="logPath" value="'+esc(logPath)+'" style="width:220px"> '+
+  '状态 <select id="logStatus"><option value="">全部</option><option '+(logStatus==='SUCCESS'?'selected':'')+'>SUCCESS</option>'+
+  '<option '+(logStatus==='FAIL'?'selected':'')+'>FAIL</option><option '+(logStatus==='DENY'?'selected':'')+'>DENY</option></select> '+
+  '<button class="btn sm" onclick="logPage=1;logPath=$(\'#logPath\').value;logStatus=$(\'#logStatus\').value;renderLog()">查询</button></div>'+
+  '<div class="card" id="logTable">加载中...</div>'
+  loadLog()
+}
+function loadLog(){
+  api(API+'/log/list?apiPath='+encodeURIComponent(logPath)+'&status='+logStatus+'&pageNo='+logPage+'&pageSize=20').then(function(d){
+    $('#logTable').innerHTML='<table><tr><th>时间</th><th>API</th><th>应用</th><th>状态</th><th>耗时</th><th>行数</th><th>IP</th><th>错误/参数</th></tr>'+
+    (d.rows||[]).map(function(r){return '<tr><td>'+esc(r.create_time)+'</td><td>'+esc(r.api_path)+'</td><td>'+esc(r.app_key)+'</td>'+
+      '<td>'+(r.status==='SUCCESS'?'<span class="tag on">成功</span>':'<span class="tag off">'+esc(r.status)+'</span>')+'</td>'+
+      '<td>'+r.cost_ms+'ms</td><td>'+r.rows_returned+'</td><td>'+esc(r.client_ip)+'</td>'+
+      '<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.error_msg||r.params)+'">'+esc(r.error_msg||r.params||'')+'</td></tr>'}).join('')+'</table>'+
+    '<div class="pager">共 '+d.total+' 条 <button class="btn sm gray" onclick="if(window._lp>1){window._lp--;loadLogWith()}">上一页</button> '+
+    (logPage)+'/'+Math.ceil(d.total/20||1)+' <button class="btn sm gray" onclick="window._lp++;loadLogWith()">下一页</button></div>';
+    window._lp=logPage
+  })
+}
+function loadLogWith(){logPage=window._lp;loadLog()}
+
+/* ---------- 接口文档 ---------- */
+function renderDoc(){
+  $('#main').innerHTML='<h2>接口文档</h2>'+
+  '<div class="card"><h3 style="font-weight:500">1. 网关统一入口</h3><p class="hint" style="margin:8px 0">POST /dsapi/{apiPath}，所有已发布 API 通过该路径调用；响应结构固定为 {code, message, data}，code=0 表示成功。</p>'+
+  '<pre style="background:#1e2a3d;color:#dbe4f0;padding:14px;border-radius:8px">curl -X POST http://localhost:8086/dsapi/order/list \\\n'+
+  '  -H "Content-Type: application/json" \\\n'+
+  '  -H "X-App-Key: dsp-xxxxxx" \\\n'+
+  '  -H "X-Timestamp: 1700000000000" \\\n'+
+  '  -H "X-Sign: <md5hex>" \\\n'+
+  '  -d \'{"status":"1","beginDate":"2026-01-01","_pageNo":1,"_pageSize":20}\'</pre></div>'+
+  '<div class="card"><h3 style="font-weight:500">2. 签名算法</h3><p class="hint" style="margin:8px 0">X-Sign = MD5(appKey + appSecret + timestamp)。时间戳与服务器偏差超过 5 分钟拒绝请求（防重放）。</p></div>'+
+  '<div class="card"><h3 style="font-weight:500">3. 分页</h3><p class="hint" style="margin:8px 0">任意 SQL/向导式 API 传 _pageNo 与 _pageSize 即自动分页，响应 data 中返回 total/pageNo/pageSize。MySQL/OceanBase/GBase8a 使用 LIMIT 语法，Oracle 自动 ROWNUM 包装。</p></div>'+
+  '<div class="card"><h3 style="font-weight:500">4. 驱动安装</h3><p class="hint" style="margin:8px 0">将 GBase 8a / Oracle / OceanBase 驱动 jar 放入 ./drivers 目录后重启（或直接放 classpath）。MySQL 驱动随平台内置依赖。</p></div>'+
+  '<div class="card"><h3 style="font-weight:500">5. 安全机制</h3><p class="hint" style="margin:8px 0">标识符白名单校验（防注入）｜仅 SELECT/WITH 语句｜禁止多语句｜只读连接｜结果行数上限｜SQL 超时｜限流｜IP 白名单｜AES 密码加密存储｜调用审计日志</p></div>'
+}
+
+/* ---------- 元数据管理 ---------- */
+var metaDsId='',metaKw='',metaLevel='',metaPage=1;
+function renderMeta(){
+  loadDsThen(function(){
+    $('#main').innerHTML='<h2>元数据管理 <button class="btn sm" onclick="metaCollect()">+ 采集元数据</button></h2>'+
+    '<div class="card"><div class="row">数据源 <select id="mtDs" onchange="metaDsId=this.value;metaPage=1;loadMetaTables()"><option value="">全部</option>'+
+    cache.ds.map(function(d){return '<option value="'+d.id+'">'+esc(d.ds_name)+'</option>'}).join('')+'</select> '+
+    '关键字 <input id="mtKw" value="'+esc(metaKw)+'" style="width:180px" onkeydown="if(event.key===\'Enter\')metaFilter()"> '+
+    '敏感级 <select id="mtLvl" onchange="metaLevel=this.value;metaPage=1;loadMetaTables()">'+
+    [['','全部'],['-1','未识别'],['0','公开'],['1','内部'],['2','敏感'],['3','机密']].map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select> '+
+    '<button class="btn sm" onclick="metaFilter()">查询</button></div><div id="metaTbl">加载中...</div></div>'+
+    '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">采集任务</h3><div id="metaTasks">加载中...</div></div>';
+    $('#mtDs').value=metaDsId;$('#mtLvl').value=metaLevel;
+    loadMetaTables();loadMetaTasks()
+  })
+}
+function metaFilter(){metaKw=$('#mtKw').value;metaPage=1;loadMetaTables()}
+function loadMetaTables(delta){
+  if(delta===1)metaPage++;else if(delta===-1&&metaPage>1)metaPage--;
+  var url=API+'/meta/tables?pageNo='+metaPage+'&pageSize=15';
+  if(metaDsId)url+='&dsId='+metaDsId;
+  if(metaKw)url+='&keyword='+encodeURIComponent(metaKw);
+  if(metaLevel!=='')url+='&level='+metaLevel;
+  api(url).then(function(d){
+    $('#metaTbl').innerHTML='<table><tr><th>ID</th><th>数据源</th><th>表名</th><th>说明</th><th>敏感级</th><th>标签</th><th>责任人</th><th>操作</th></tr>'+
+    (d.rows||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+r.ds_id+'</td><td><code>'+esc(r.table_name)+'</code></td><td>'+esc(r.comment||'')+'</td>'+
+    '<td>'+lvlTag(r.level)+'</td><td>'+esc(r.tags||'')+'</td><td>'+esc(r.owner||'')+'</td>'+
+    '<td><button class="btn sm" onclick="metaCols('+r.ds_id+',\''+esc(r.table_name)+'\')">字段</button> '+
+    '<button class="btn sm green" onclick="tagAssetModal('+r.ds_id+',\''+esc(r.table_name)+'\')">编目</button></td></tr>'}).join('')+'</table>'+
+    pager(d.total,metaPage,'loadMetaTables')})
+}
+function loadMetaTasks(){
+  api(API+'/meta/tasks?pageNo=1&pageSize=10').then(function(d){
+    $('#metaTasks').innerHTML='<table><tr><th>ID</th><th>数据源</th><th>类型</th><th>状态</th><th>表/字段</th><th>耗时</th><th>时间</th><th>错误信息</th></tr>'+
+    (d.rows||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+r.ds_id+'</td><td>'+esc(r.task_type||'')+'</td>'+
+    '<td>'+(r.status==='SUCCESS'?'<span class="tag on">成功</span>':(r.status==='FAIL'?'<span class="tag off">失败</span>':'<span class="tag warn">运行中</span>'))+'</td>'+
+    '<td>'+r.table_cnt+' / '+r.column_cnt+'</td><td>'+(r.cost_ms||0)+'ms</td><td>'+esc(r.create_time||'')+'</td>'+
+    '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.error_msg||'')+'">'+esc(r.error_msg||'')+'</td></tr>'}).join('')+'</table>'})
+}
+function metaCollect(){
+  loadDsThen(function(){
+    modal('采集元数据','<div class="frm"><label>数据源</label><select id="mcDs" style="width:100%">'+
+    cache.ds.filter(function(d){return d.ds_type!=='redis'}).map(function(d){return '<option value="'+d.id+'">'+esc(d.ds_name)+' ('+d.ds_type+')</option>'}).join('')+'</select>'+
+    '<label>方式</label><select id="mcFull" style="width:100%"><option value="1">全量</option><option value="0">增量</option></select></div>'+
+    '<div class="row" style="margin-top:14px"><button class="btn" onclick="doCollect()">开始采集</button>'+
+    '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+  })
+}
+function doCollect(){
+  var dsId=$('#mcDs').value,full=$('#mcFull').value;
+  toast('采集中，请稍候...',true);
+  api(API+'/meta/collect/'+dsId+'?full='+full,{},'POST').then(function(){
+    closeModal();toast('采集完成',true);render()})
+}
+function metaCols(dsId,table){
+  api(API+'/meta/columns?dsId='+dsId+'&table='+encodeURIComponent(table)).then(function(cols){
+    modal('字段清单 - '+esc(table),
+    '<table><tr><th>字段</th><th>类型</th><th>键</th><th>备注</th><th>业务名</th><th>敏感级</th></tr>'+
+    (cols||[]).map(function(c){return '<tr><td><code>'+esc(c.col_name)+'</code></td><td>'+esc(c.data_type||'')+'</td><td>'+esc(c.col_key||'')+'</td>'+
+    '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(c.remarks||'')+'">'+esc(c.remarks||'')+'</td>'+
+    '<td>'+esc(c.biz_name||'')+'</td>'+
+    '<td><select onchange="setLvl('+c.id+',this.value)">'+
+    [[-1,'未识别'],[0,'公开'],[1,'内部'],[2,'敏感'],[3,'机密']].map(function(o){return '<option value="'+o[0]+'"'+(c.level==o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></td></tr>'}).join('')+'</table>',860)})
+}
+function setLvl(id,level){api(API+'/meta/level',{id:id,level:+level},'POST').then(function(){toast('敏感级已调整',true);loadMetaTables()})}
+function tagAssetModal(dsId,table){
+  api(API+'/asset/catalog').then(function(rows){
+    api(API+'/meta/tables?dsId='+dsId+'&keyword='+encodeURIComponent(table)+'&pageNo=1&pageSize=5').then(function(d){
+      var t=(d.rows||[]).filter(function(x){return x.table_name===table})[0]||{};
+      modal('资产编目 - '+esc(table),'<div class="frm"><div class="grid2">'+
+      fldSel('catalog_id','所属目录',[[0,'(未编目)']].concat((rows||[]).map(function(r){return [r.id,r.cat_name]})),t.catalog_id||0)+
+      fld('owner','数据责任人',t.owner||'')+'</div>'+
+      '<label>标签(逗号分隔)</label><input id="f_tags" value="'+esc(t.tags||'')+'" style="width:100%">'+
+      '<div class="grid2" style="margin-top:8px">'+fldSel('svc_ready','可对外服务',[['0','否'],['1','是']],t.svc_ready==null?0:t.svc_ready)+
+      fldSel('refresh_freq','更新频率',[['','未设置'],['REALTIME','实时'],['DAILY','每日'],['WEEKLY','每周'],['MONTHLY','每月']],t.refresh_freq||'')+'</div></div>'+
+      '<div class="row" style="margin-top:14px"><button class="btn" onclick="saveAssetTag('+dsId+',\''+esc(table)+'\')">保存</button>'+
+      '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+    })
+  })
+}
+function saveAssetTag(dsId,table){
+  var b={dsId:dsId,tableName:table,catalogId:+($('#f_catalog_id').value||0),tags:$('#f_tags').value,owner:$('#f_owner').value,
+    svcReady:+$('#f_svc_ready').value,refreshFreq:$('#f_refresh_freq').value};
+  api(API+'/asset/tag',b,'POST').then(function(){toast('编目成功',true);closeModal();loadMetaTables()})
+}
+
+/* ---------- 资产目录 ---------- */
+function renderAsset(){
+  $('#main').innerHTML='<h2>资产目录 <button class="btn sm" onclick="catModal()">+ 新建目录</button></h2>'+
+  '<div class="card"><div class="row">资产检索 <input id="asKw" style="width:240px" placeholder="表名/注释/标签" onkeydown="if(event.key===\'Enter\')assetSearch()">'+
+  '<button class="btn sm" onclick="assetSearch()">搜索</button> '+
+  '血缘反查 <input id="linTbl" style="width:180px" placeholder="表名(被哪些服务使用)" onkeydown="if(event.key===\'Enter\')lineageLookup()">'+
+  '<button class="btn sm" onclick="lineageLookup()">查询</button></div><div id="asResult"></div></div>'+
+  '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">目录结构</h3><div id="catTree">加载中...</div></div>';
+  loadCatalog()
+}
+function loadCatalog(){
+  api(API+'/asset/catalog').then(function(rows){
+    function tree(pid,depth){var out='';
+      (rows||[]).filter(function(r){return (r.parent_id||0)==pid}).forEach(function(r){
+        out+='<div style="padding:4px 0 4px '+(depth*22+8)+'px">'+(depth?'└ ':'')+'<b>'+esc(r.cat_name)+'</b> '+
+        '<span class="hint">'+esc(r.cat_type||'')+' / 排序'+(r.sort_no||0)+'</span> '+
+        '<button class="btn sm gray" onclick="catModal('+r.id+')">编辑</button> '+
+        '<button class="btn sm" onclick="catModal(0,'+r.id+')">+子目录</button> '+
+        '<button class="btn sm red" onclick="delCat('+r.id+')">删除</button></div>';
+        out+=tree(r.id,depth+1)});return out}
+    $('#catTree').innerHTML=tree(0,0)||'<div class="hint">暂无目录，请先新建</div>'})
+}
+function catModal(id,pid){
+  api(API+'/asset/catalog').then(function(rows){
+    var d=id?(rows||[]).filter(function(r){return r.id===id})[0]||{}:{parent_id:pid||0,cat_type:'DOMAIN',sort_no:0};
+    modal((id?'编辑':'新建')+'目录','<div class="frm"><div class="grid2">'+
+    fld('cat_name','目录名称',d.cat_name)+
+    fldSel('parent_id','上级目录',[[0,'(顶级)']].concat((rows||[]).filter(function(r){return r.id!==id}).map(function(r){return [r.id,r.cat_name]})),d.parent_id)+
+    '</div><div class="grid2">'+fldSel('cat_type','类型',[['DOMAIN','业务域'],['THEME','主题'],['LAYER','分层']],d.cat_type)+
+    fld('sort_no','排序号',d.sort_no)+'</div></div>'+
+    '<div class="row" style="margin-top:14px"><button class="btn" onclick="saveCat('+(id||0)+')">保存</button>'+
+    '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+  })
+}
+function saveCat(id){var b=formJson('f_');b.parentId=+b.parent_id||0;b.sortNo=+b.sort_no||0;if(id)b.id=id;
+  api(API+'/asset/catalog/save',b,'POST').then(function(){toast('已保存',true);closeModal();loadCatalog()})}
+function delCat(id){if(!confirm('确认删除该目录？'))return;
+  api(API+'/asset/catalog/delete/'+id,{},'POST').then(function(){toast('已删除',true);loadCatalog()})}
+function assetSearch(){
+  var kw=$('#asKw').value;if(!kw){toast('请输入关键字',false);return}
+  api(API+'/asset/search?keyword='+encodeURIComponent(kw)).then(function(d){
+    $('#asResult').innerHTML='<h3 style="font-weight:500;margin:6px 0">匹配表</h3>'+
+    ((d.tables||[]).length?'<table><tr><th>数据源</th><th>表</th><th>说明</th><th>敏感级</th><th>标签</th><th>责任人</th></tr>'+
+    d.tables.map(function(r){return '<tr><td>'+r.ds_id+'</td><td><code>'+esc(r.table_name)+'</code></td><td>'+esc(r.comment||'')+'</td><td>'+lvlTag(r.level)+'</td><td>'+esc(r.tags||'')+'</td><td>'+esc(r.owner||'')+'</td></tr>'}).join('')+'</table>':'<div class="hint">无匹配表</div>')+
+    '<h3 style="font-weight:500;margin:12px 0">匹配字段</h3>'+
+    ((d.columns||[]).length?'<table><tr><th>数据源</th><th>表</th><th>字段</th><th>备注</th><th>业务名</th><th>敏感级</th></tr>'+
+    d.columns.map(function(r){return '<tr><td>'+r.ds_id+'</td><td>'+esc(r.table_name)+'</td><td><code>'+esc(r.col_name)+'</code></td><td>'+esc(r.remarks||'')+'</td><td>'+esc(r.biz_name||'')+'</td><td>'+lvlTag(r.level)+'</td></tr>'}).join('')+'</table>':'<div class="hint">无匹配字段</div>')})
+}
+function lineageLookup(){
+  var t=$('#linTbl').value;if(!t){toast('请输入表名',false);return}
+  api(API+'/lineage/table/'+encodeURIComponent(t)).then(function(rows){
+    $('#asResult').innerHTML='<h3 style="font-weight:500;margin:6px 0">表 '+esc(t)+' 的使用关系</h3>'+
+    ((rows||[]).length?'<table><tr><th>API</th><th>API_ID</th><th>涉及字段</th><th>发布状态</th></tr>'+
+    rows.map(function(r){return '<tr><td>'+esc(r.api_name||'-')+'</td><td>'+r.api_id+'</td><td>'+esc(r.col_names||'')+'</td><td>'+esc(r.env_status||'')+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无服务使用该表（API 保存后自动解析血缘）</div>')})
+}
+
+/* ---------- 脱敏规则 ---------- */
+var MASK_TYPES=[['MASK','部分遮蔽'],['FULL','全遮蔽'],['NULL','置空'],['REPLACE','替换'],['HASH','哈希'],['GENERALIZE','泛化']];
+var RULE_TYPES=['NAME','IDCARD','PHONE','BANK','EMAIL','ADDRESS','AMOUNT','CUSTOM'];
+function renderMask(){
+  api(API+'/mask/rules').then(function(rows){
+    cache.masks=rows||[];
+    $('#main').innerHTML='<h2>脱敏规则 <button class="btn sm" onclick="maskModal()">+ 新建规则</button></h2>'+
+    '<div class="card"><table><tr><th>ID</th><th>规则名</th><th>类型</th><th>脱敏方式</th><th>匹配正则</th><th>关键词</th><th>保留前/后</th><th>命中等级</th><th>状态</th><th>操作</th></tr>'+
+    (rows||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.rule_name)+'</td><td>'+esc(r.rule_type)+'</td><td>'+esc(r.mask_type)+'</td>'+
+    '<td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.match_regex||'')+'</td><td>'+esc(r.match_keys||'')+'</td>'+
+    '<td>'+r.keep_prefix+'/'+r.keep_suffix+'</td><td>'+lvlTag(r.level)+'</td>'+
+    '<td>'+(r.enabled==1?'<span class="tag on">启用</span>':'<span class="tag off">停用</span>')+'</td>'+
+    '<td><button class="btn sm green" onclick="maskPreview('+r.id+')">预览</button> '+
+    '<button class="btn sm" onclick="maskModal('+r.id+')">编辑</button> '+
+    '<button class="btn sm red" onclick="delMask('+r.id+')">删除</button></td></tr>'}).join('')+'</table></div>'+
+    '<div class="card"><span class="hint">说明：规则按 字段名正则/关键词 匹配输出字段，命中后按脱敏方式动态处理返回值；敏感级映射：1内部/2敏感/3机密字段自动套用对应等级规则</span></div>'})
+}
+function maskModal(id){
+  var r=id?cache.masks.filter(function(x){return x.id===id})[0]||{}:{rule_type:'PHONE',mask_type:'MASK',keep_prefix:3,keep_suffix:4,level:2,enabled:1};
+  modal((id?'编辑':'新建')+'脱敏规则','<div class="frm"><div class="grid2">'+
+  fld('rule_name','规则名称',r.rule_name)+
+  fldSel('rule_type','规则类型',RULE_TYPES.map(function(t){return [t,t]}),r.rule_type)+'</div><div class="grid2">'+
+  fldSel('mask_type','脱敏方式',MASK_TYPES,r.mask_type)+
+  fldSel('level','命中敏感级',[[-1,'未识别'],[0,'公开'],[1,'内部'],[2,'敏感'],[3,'机密']],r.level==null?2:r.level)+'</div>'+
+  '<label>匹配正则（识别字段名/注释，可空）</label><input id="f_match_regex" value="'+esc(r.match_regex||'')+'" style="width:100%">'+
+  '<label>匹配关键词（逗号分隔，可空）</label><input id="f_match_keys" value="'+esc(r.match_keys||'')+'" style="width:100%">'+
+  '<div class="grid2" style="margin-top:8px">'+fld('keep_prefix','保留前N位',r.keep_prefix)+fld('keep_suffix','保留后N位',r.keep_suffix)+'</div>'+
+  '<div class="grid2">'+fld('replace_str','替换串(REPLACE用)',r.replace_str||'')+fldSel('enabled','状态',[['1','启用'],['0','停用']],r.enabled)+'</div></div>'+
+  '<div class="row" style="margin-top:14px"><button class="btn" onclick="saveMask('+(id||0)+')">保存</button>'+
+  '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+}
+function saveMask(id){var b=formJson('f_');b.keepPrefix=+b.keep_prefix||0;b.keepSuffix=+b.keep_suffix||0;b.level=+b.level;if(id)b.id=id;
+  api(API+'/mask/save',b,'POST').then(function(){toast('已保存',true);closeModal();renderMask()})}
+function delMask(id){if(!confirm('确认删除该规则？'))return;
+  api(API+'/mask/delete/'+id,{},'POST').then(function(){toast('已删除',true);renderMask()})}
+function maskPreview(id){
+  var v=prompt('输入测试值：');if(v===null)return;
+  api(API+'/mask/preview',{ruleId:id,value:v},'POST').then(function(out){toast('脱敏结果: '+out,true)})
+}
+
+/* ---------- 订阅与授权 ---------- */
+var subStatus='';
+function renderSub(){
+  Promise.all([api(API+'/sub/list'+(subStatus?'?status='+subStatus:'')),api(API+'/app/list'),api(API+'/api/list')]).then(function(rs){
+    cache.apps=rs[1].rows||[];cache.apis=rs[2].rows||[];
+    $('#main').innerHTML='<h2>订阅与授权 <button class="btn sm" onclick="subApplyModal()">+ 申请订阅</button></h2>'+
+    '<div class="card"><div class="row">状态 <select onchange="subStatus=this.value;renderSub()">'+
+    [['','全部'],['PENDING','待审批'],['ACTIVE','生效中'],['REJECTED','已驳回'],['REVOKED','已停用'],['EXPIRED','已过期']].map(function(o){return '<option value="'+o[0]+'"'+(subStatus===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>'+
+    '<table><tr><th>ID</th><th>应用</th><th>API</th><th>字段范围</th><th>日/月配额</th><th>到期日</th><th>状态</th><th>明文字段</th><th>操作</th></tr>'+
+    (rs[0]||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.app_name||r.app_id)+'</td><td>'+esc(r.api_name||r.api_id)+'</td>'+
+    '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.fields_scope||'')+'">'+esc(r.fields_scope||'*')+'</td>'+
+    '<td>'+r.quota_daily+'/'+r.quota_monthly+'</td><td>'+esc(r.expire_date||'-')+'</td>'+
+    '<td>'+subTag(r.status)+'</td>'+
+    '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.plain_fields||'')+'</td>'+
+    '<td><button class="btn sm red" onclick="subStop('+r.id+')">紧急停用</button> '+
+    '<button class="btn sm green" onclick="subRenew('+r.id+')">续期</button> '+
+    '<button class="btn sm" onclick="subPlain('+r.id+')">明文申请</button></td></tr>'}).join('')+'</table></div>'})
+}
+function subTag(s){var m={PENDING:'warn',ACTIVE:'on',REJECTED:'off',REVOKED:'off',EXPIRED:'off'};
+  return '<span class="tag '+(m[s]||'off')+'">'+esc(s)+'</span>'}
+function subApplyModal(){
+  if(!cache.apps.length||!cache.apis.length){toast('请先创建应用与 API',false);return}
+  modal('申请订阅','<div class="frm"><div class="grid2">'+
+  fldSel('app_id','应用',cache.apps.map(function(a){return [a.id,a.app_name]}))+
+  fldSel('api_id','API 服务',cache.apis.map(function(a){return [a.id,a.api_name+' ('+a.api_path+')']}))+'</div>'+
+  '<label>授权字段范围(逗号分隔,*=全部)</label><input id="f_fields_scope" value="*" style="width:100%">'+
+  '<div class="grid2" style="margin-top:8px">'+fld('quota_daily','日配额',10000)+fld('quota_monthly','月配额',200000)+'</div>'+
+  '<div class="grid2">'+fld('expire_date','到期日(yyyy-MM-dd)','')+fld('apply_desc','使用场景/调用量说明','')+'</div></div>'+
+  '<div class="row" style="margin-top:14px"><button class="btn" onclick="doSubApply()">提交申请(进入审批)</button>'+
+  '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+}
+function doSubApply(){
+  var b=formJson('f_');b.appId=+b.app_id;b.apiId=+b.api_id;b.quotaDaily=b.quota_daily;b.quotaMonthly=b.quota_monthly;
+  api(API+'/sub/apply',b,'POST').then(function(){closeModal();toast('申请已提交，等待审批',true);renderSub()})
+}
+function subStop(id){var reason=prompt('紧急停用原因：');if(reason===null)return;
+  api(API+'/sub/emergency/'+id,{reason:reason},'POST').then(function(m){toast(typeof m==='string'?m:'已停用',true);renderSub()})}
+function subRenew(id){var d=prompt('新到期日(yyyy-MM-dd)：');if(!d)return;
+  api(API+'/sub/renew/'+id,{expireDate:d},'POST').then(function(){toast('已续期',true);renderSub()})}
+function subPlain(id){var f=prompt('申请明文查看的字段(逗号分隔)：');if(!f)return;
+  api(API+'/sub/plainview',{subId:id,plainFields:f},'POST').then(function(){toast('明文查看申请已提交(SEC/ADMIN审批)',true)})}
+
+/* ---------- 审批中心 ---------- */
+var apStatus='',apType='';
+function renderApproval(){
+  var url=API+'/approval/list?';
+  if(apStatus)url+='&status='+apStatus;if(apType)url+='&type='+apType;
+  api(url).then(function(d){
+    var rows=d.rows||d||[];
+    $('#main').innerHTML='<h2>审批中心</h2><div class="card"><div class="row">状态 <select onchange="apStatus=this.value;renderApproval()">'+
+    [['','全部'],['PENDING','待审批'],['APPROVED','已通过'],['REJECTED','已驳回'],['CANCELLED','已撤销']].map(function(o){return '<option value="'+o[0]+'"'+(apStatus===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select> '+
+    '类型 <select onchange="apType=this.value;renderApproval()">'+
+    [['','全部'],['PUBLISH','服务发布'],['SUBSCRIBE','订阅申请'],['PLAINVIEW','明文查看']].map(function(o){return '<option value="'+o[0]+'"'+(apType===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select> '+
+    '<span class="hint">按角色会签：OWNER/SEC/DEV/ADMIN，admin 具备 ADMIN 角色</span></div>'+
+    '<table><tr><th>ID</th><th>类型</th><th>标题</th><th>申请人</th><th>需会签角色</th><th>已批准</th><th>状态</th><th>时间</th><th>操作</th></tr>'+
+    rows.map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.type)+'</td>'+
+    '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.detail||'')+'">'+esc(r.title||'')+'</td>'+
+    '<td>'+esc(r.apply_user||'')+'</td><td>'+esc(r.need_roles||'')+'</td><td>'+esc(r.approved||'')+'</td>'+
+    '<td>'+(r.status==='PENDING'?'<span class="tag warn">待审批</span>':(r.status==='APPROVED'?'<span class="tag on">已通过</span>':'<span class="tag off">'+esc(r.status)+'</span>'))+'</td>'+
+    '<td>'+esc(r.create_time||'')+'</td>'+
+    '<td>'+(r.status==='PENDING'?'<button class="btn sm green" onclick="apAct('+r.id+',\'approve\')">通过</button> <button class="btn sm red" onclick="apAct('+r.id+',\'reject\')">驳回</button>':'-')+'</td></tr>'}).join('')+
+    '</table></div>'})
+}
+function apAct(id,action){
+  var op=prompt('审批意见：',action==='approve'?'同意':'不同意');if(op===null)return;
+  api(API+'/approval/act',{id:id,action:action,opinion:op},'POST').then(function(){toast('审批完成',true);renderApproval()})
+}
+
+/* ---------- 监控与告警 ---------- */
+function renderMonitor(){
+  $('#main').innerHTML='<h2>监控与告警 <span class="hint" id="sysTime"></span></h2>'+
+  '<div class="card"><div style="font-weight:500;margin-bottom:8px">服务器状态 <span class="hint">10 秒自动刷新</span></div>'+
+  '<div id="sysInfo" class="hint">加载中...</div><div style="height:10px"></div>'+
+  '<div class="gauges" id="sysGauges"></div><div style="height:8px"></div><div id="sysTrend"></div>'+
+  '<div class="chart-leg" id="sysLeg"></div><div style="height:6px"></div><div id="sysQps"></div>'+
+  '<div class="chart-leg" id="sysQpsLeg"></div></div>'+
+  '<div class="panel2"><div class="card" style="margin:0"><div style="font-weight:500;margin-bottom:10px">JVM 运行时</div><div id="sysJvm"></div></div>'+
+  '<div class="card" style="margin:0"><div style="font-weight:500;margin-bottom:10px">磁盘监控</div><div id="sysDisks"></div></div></div>'+
+  '<div style="height:14px"></div>'+
+  '<div class="card"><div class="row"><b>服务指标</b> 统计窗口 <select id="monWin" onchange="loadMon()">'+
+  [5,10,30,60].map(function(w){return '<option value="'+w+'"'+(w===10?' selected':'')+'>'+w+' 分钟</option>'}).join('')+'</select></div><div id="monMetrics">加载中...</div></div>'+
+  '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">慢接口</h3><div id="monSlow">加载中...</div></div>'+
+  '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">服务健康</h3><div id="monHealth">加载中...</div></div>'+
+  '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">告警规则 <button class="btn sm" onclick="alertModal()">+ 新建规则</button></h3><div id="monRules">加载中...</div></div>'+
+  '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">告警记录</h3><div id="monAlerts">加载中...</div></div>'+
+  '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">安全事件</h3><div id="monSec">加载中...</div></div>';
+  api(API+'/sys/metrics').then(function(sys){
+    paintSys(sys);
+    var info=$('#sysInfo');
+    if(info)info.innerHTML='<span class="chip">系统 <b>'+esc(sys.osName)+'</b></span><span class="chip">架构 <b>'+esc(sys.osArch)+'</b></span>'+
+      '<span class="chip">CPU 核心 <b>'+sys.cores+'</b></span><span class="chip">Java <b>'+esc(sys.javaVersion)+'</b></span>'+
+      '<span class="chip">运行时长 <b>'+esc(sys.uptimeText)+'</b></span><span class="chip">工作目录 <b>'+esc(sys.userDir)+'</b></span>';
+  });
+  startSys();
+  loadMon()
+}
+function loadMon(){
+  var w=$('#monWin').value;
+  api(API+'/monitor/metrics?window='+w).then(function(d){
+    var ms=Object.keys(d.metrics||{}).map(function(k){return d.metrics[k]});
+    $('#monMetrics').innerHTML=ms.length?'<table><tr><th>API</th><th>调用</th><th>成功</th><th>拒绝</th><th>错误率%</th><th>平均耗时</th><th>最大耗时</th><th>返回行数</th></tr>'+
+    ms.map(function(m){return '<tr><td><code>'+esc(m.path)+'</code></td><td>'+m.calls+'</td><td>'+m.success+'</td><td>'+m.deny+'</td>'+
+    '<td>'+(m.errorRate>10?'<b style="color:var(--err)">'+m.errorRate+'</b>':m.errorRate)+'</td><td>'+m.avgCost+'ms</td><td>'+m.maxCost+'ms</td><td>'+m.rows+'</td></tr>'}).join('')+'</table>':'<div class="hint">窗口内暂无调用</div>';
+    var sl=d.slow||[];
+    $('#monSlow').innerHTML=sl.length?'<table><tr><th>API</th><th>平均耗时</th><th>最大耗时</th><th>调用数</th></tr>'+
+    sl.map(function(m){return '<tr><td><code>'+esc(m.path||m.api_path||'')+'</code></td><td>'+(m.avgCost||m.avg_cost||0)+'ms</td><td>'+(m.maxCost||m.max_cost||0)+'ms</td><td>'+(m.calls||m.cnt||0)+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无慢接口数据</div>'})
+  api(API+'/monitor/health').then(function(rows){
+    $('#monHealth').innerHTML=(rows&&rows.length)?'<table><tr><th>API</th><th>路径</th><th>状态</th><th>连续失败</th><th>最近成功</th><th>最近失败</th><th>失败信息</th></tr>'+
+    rows.map(function(r){return '<tr><td>'+r.api_id+'</td><td><code>'+esc(r.api_path||'')+'</code></td>'+
+    '<td>'+(r.status==='UP'?'<span class="tag on">UP</span>':'<span class="tag off">'+esc(r.status)+'</span>')+'</td><td>'+r.fail_cnt+'</td>'+
+    '<td>'+esc(r.last_ok||'-')+'</td><td>'+esc(r.last_fail||'-')+'</td>'+
+    '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.fail_msg||'')+'">'+esc(r.fail_msg||'')+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无健康检查数据（服务被调用后自动生成）</div>'})
+  api(API+'/alert/rules').then(function(rows){
+    cache.alerts=rows||[];
+    $('#monRules').innerHTML='<table><tr><th>ID</th><th>规则名</th><th>指标</th><th>目标</th><th>条件</th><th>窗口</th><th>级别</th><th>状态</th><th>操作</th></tr>'+
+    (rows||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.rule_name)+'</td><td>'+esc(r.metric)+'</td><td>'+esc(r.target)+'</td>'+
+    '<td>'+esc(r.op)+' '+r.threshold+'</td><td>'+r.window_min+'分</td><td>'+esc(r.level)+'</td>'+
+    '<td>'+(r.enabled==1?'<span class="tag on">启用</span>':'<span class="tag off">停用</span>')+'</td>'+
+    '<td><button class="btn sm" onclick="alertModal('+r.id+')">编辑</button> <button class="btn sm red" onclick="delAlert('+r.id+')">删除</button></td></tr>'}).join('')+'</table>'})
+  api(API+'/alert/logs').then(function(rows){
+    $('#monAlerts').innerHTML=(rows&&rows.length)?'<table><tr><th>时间</th><th>规则</th><th>级别</th><th>指标</th><th>目标</th><th>当前值/阈值</th><th>状态</th><th>操作</th></tr>'+
+    rows.map(function(r){return '<tr><td>'+esc(r.create_time)+'</td><td>'+esc(r.rule_name||r.rule_id)+'</td><td>'+esc(r.level)+'</td><td>'+esc(r.metric||'')+'</td><td>'+esc(r.target||'')+'</td>'+
+    '<td>'+esc(r.cur_value)+' / '+esc(r.threshold)+'</td>'+
+    '<td>'+(r.status==='OPEN'?'<span class="tag warn">未确认</span>':'<span class="tag on">'+esc(r.status)+' '+(r.ack_by||'')+'</span>')+'</td>'+
+    '<td>'+(r.status==='OPEN'?'<button class="btn sm green" onclick="ackAlert('+r.id+')">确认</button>':'-')+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无告警</div>'})
+  api(API+'/sec/events').then(function(rows){
+    $('#monSec').innerHTML=(rows&&rows.length)?'<table><tr><th>时间</th><th>类型</th><th>级别</th><th>详情</th><th>应用</th><th>IP</th><th>API</th><th>拦截</th></tr>'+
+    rows.map(function(r){return '<tr><td>'+esc(r.create_time)+'</td><td>'+esc(r.event_type)+'</td>'+
+    '<td>'+(r.level==='HIGH'?'<span class="tag off">HIGH</span>':'<span class="tag warn">'+esc(r.level)+'</span>')+'</td>'+
+    '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.detail||'')+'">'+esc(r.detail||'')+'</td>'+
+    '<td>'+esc(r.app_key||'')+'</td><td>'+esc(r.client_ip||'')+'</td><td>'+esc(r.api_path||'')+'</td>'+
+    '<td>'+(r.blocked==1?'是':'否')+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无安全事件</div>'})
+}
+function alertModal(id){
+  var r=id?cache.alerts.filter(function(x){return x.id===id})[0]||{}:{metric:'ERROR_RATE',target:'*',op:'>',threshold:5,window_min:5,level:'WARN',enabled:1};
+  modal((id?'编辑':'新建')+'告警规则','<div class="frm"><div class="grid2">'+
+  fld('rule_name','规则名称',r.rule_name)+
+  fldSel('metric','指标',[['ERROR_RATE','错误率%'],['AVG_COST','平均耗时ms'],['CALL_COUNT','调用量'],['DENY_COUNT','拒绝数'],['maxCost','单API最大耗时ms'],['rows','单API返回行数']],r.metric)+'</div><div class="grid2">'+
+  fld('target','目标(api_path或*)',r.target)+
+  fldSel('op','条件',[['>','大于'],['<','小于']],r.op)+'</div><div class="grid2">'+
+  fld('threshold','阈值',r.threshold)+fld('window_min','窗口(分钟)',r.window_min)+'</div><div class="grid2">'+
+  fldSel('level','级别',[['INFO','INFO'],['WARN','WARN'],['CRITICAL','CRITICAL']],r.level)+
+  fldSel('enabled','状态',[['1','启用'],['0','停用']],r.enabled)+'</div></div>'+
+  '<div class="row" style="margin-top:14px"><button class="btn" onclick="saveAlert('+(id||0)+')">保存</button>'+
+  '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+}
+function saveAlert(id){var b=formJson('f_');b.threshold=+b.threshold||0;b.windowMin=+b.window_min||5;if(id)b.id=id;
+  api(API+'/alert/save',b,'POST').then(function(){toast('已保存',true);closeModal();renderMonitor()})}
+function delAlert(id){if(!confirm('确认删除该规则？'))return;
+  api(API+'/alert/delete/'+id,{},'POST').then(function(){toast('已删除',true);renderMonitor()})}
+function ackAlert(id){api(API+'/alert/ack/'+id,{},'POST').then(function(){toast('已确认',true);renderMonitor()})}
+
+/* ---------- 批量任务 ---------- */
+function renderBatch(){
+  loadDsThen(function(){
+    api(API+'/batch/list').then(function(rows){
+      cache.batch=rows||[];
+      $('#main').innerHTML='<h2>批量任务 <button class="btn sm" onclick="batchModal()">+ 新建任务</button></h2>'+
+      '<div class="card"><table><tr><th>ID</th><th>任务名</th><th>数据源</th><th>导出文件</th><th>格式</th><th>定时</th><th>加密</th><th>水印</th><th>状态</th><th>最近运行</th><th>操作</th></tr>'+
+      (rows||[]).map(function(r){var ds=cache.ds.filter(function(d){return d.id===r.ds_id})[0];
+      return '<tr><td>'+r.id+'</td><td>'+esc(r.task_name)+'</td><td>'+esc(ds?ds.ds_name:r.ds_id)+'</td>'+
+      '<td>'+esc(r.file_name||'')+'</td><td>'+esc(r.file_format||'CSV')+'</td><td>'+(r.schedule||'手动')+'</td>'+
+      '<td>'+(r.encrypt==1?'是':'否')+'</td><td>'+esc(r.watermark||'')+'</td>'+
+      '<td>'+batTag(r.status)+'</td><td>'+esc(r.last_run||'-')+'<br><span class="hint">'+(r.last_rows||0)+' 行</span></td>'+
+      '<td><button class="btn sm green" onclick="runBatch('+r.id+')">执行</button> '+
+      '<button class="btn sm" onclick="batchRuns('+r.id+')">记录</button> '+
+      '<button class="btn sm" onclick="batchModal('+r.id+')">编辑</button> '+
+      '<button class="btn sm" onclick="reconBatch('+r.id+')">对账</button> '+
+      '<button class="btn sm red" onclick="delBatch('+r.id+')">删除</button></td></tr>'}).join('')+'</table></div>'})
+  })
+}
+function batTag(s){var m={SUCCESS:'on',FAIL:'off',RUNNING:'warn'};
+  return '<span class="tag '+(m[s]||'off')+'" style="'+(s==='IDLE'||!m[s]?'background:#eef1f6;color:#7a8ba3':'')+'">'+esc(s||'IDLE')+'</span>'}
+function batchModal(id){
+  var r=id?cache.batch.filter(function(x){return x.id===id})[0]||{}:{fileFormat:'CSV',charset:'UTF-8',encrypt:0};
+  modal((id?'编辑':'新建')+'批量任务','<div class="frm"><div class="grid2">'+
+  fld('task_name','任务名称',r.task_name)+
+  fldSel('ds_id','数据源',cache.ds.filter(function(d){return d.ds_type!=='redis'}).map(function(d){return [d.id,d.ds_name+' ('+d.ds_type+')']}),r.ds_id)+'</div>'+
+  '<label>导出 SQL（仅 SELECT/WITH）</label><textarea id="f_sql_text" rows="5">'+esc(r.sql_text||'')+'</textarea>'+
+  '<div class="grid2" style="margin-top:8px">'+fld('file_name','导出文件名',r.file_name||'')+
+  fldSel('file_format','文件格式',[['CSV','CSV'],['JSON','JSON']],r.file_format||'CSV')+'</div>'+
+  '<div class="grid2">'+fldSel('charset','编码',[['UTF-8','UTF-8'],['GBK','GBK']],r.charset||'UTF-8')+
+  fld('schedule','定时(HH:mm,空=手动)',r.schedule||'')+'</div>'+
+  '<div class="grid2">'+fldSel('encrypt','文件加密',[['0','否'],['1','是']],r.encrypt||0)+
+  fld('watermark','文件水印内容',r.watermark||'')+'</div>'+
+  fld('owner','负责人',r.owner||'')+'</div>'+
+  '<div class="row" style="margin-top:14px"><button class="btn" onclick="saveBatch('+(id||0)+')">保存</button>'+
+  '<button class="btn gray" onclick="closeModal()">取消</button></div>',780)
+}
+function saveBatch(id){var b=formJson('f_');b.dsId=+b.ds_id;if(id)b.id=id;
+  api(API+'/batch/save',b,'POST').then(function(){toast('已保存',true);closeModal();renderBatch()})}
+function delBatch(id){if(!confirm('确认删除该任务？'))return;
+  api(API+'/batch/delete/'+id,{},'POST').then(function(){toast('已删除',true);renderBatch()})}
+function runBatch(id){toast('任务执行中...',true);
+  api(API+'/batch/run/'+id,{},'POST').then(function(d){toast('执行完成',true);renderBatch()})}
+function batchRuns(taskId){
+  api(API+'/batch/runs/'+taskId).then(function(rows){
+    modal('执行记录 - 任务#'+taskId,'<table><tr><th>ID</th><th>状态</th><th>行数</th><th>文件</th><th>开始</th><th>结束</th><th>错误</th><th>操作</th></tr>'+
+    (rows||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+batTag(r.status)+'</td><td>'+r.rows_cnt+'</td>'+
+    '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.file_path||'')+'</td>'+
+    '<td>'+esc(r.start_time||'')+'</td><td>'+esc(r.end_time||'')+'</td>'+
+    '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.error_msg||'')+'">'+esc(r.error_msg||'')+'</td>'+
+    '<td>'+(r.file_path?'<button class="btn sm green" onclick="dlRun('+r.id+')">下载</button>':'-')+'</td></tr>'}).join('')+'</table>',860)})}
+function dlRun(runId){
+  fetch(API+'/batch/download/'+runId,{headers:{'X-Token':token}}).then(function(r){
+    if(!r.ok){toast('下载失败 '+r.status,false);return null}return r.blob()})
+  .then(function(b){if(!b)return;var a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download='batch_'+runId+'.csv';a.click()})
+}
+function reconBatch(id){api(API+'/batch/reconcile/'+id,{},'POST').then(function(d){
+  toast('对账完成: '+(typeof d==='object'?JSON.stringify(d):d),true)})}
+
+/* ---------- 计量报表 ---------- */
+function renderBiz(){
+  Promise.all([api(API+'/biz/usage'),api(API+'/biz/report')]).then(function(rs){
+    var u=rs[0]||[],rep=rs[1]||{};
+    $('#main').innerHTML='<h2>计量报表</h2>'+
+    '<div class="grid2"><div class="card"><h3 style="font-weight:500;margin-bottom:10px">按应用汇总</h3>'+
+    ((rep.byApp||[]).length?'<table><tr><th>应用</th><th>总调用</th><th>失败</th><th>返回行数</th></tr>'+
+    rep.byApp.map(function(r){return '<tr><td>'+esc(r.app_name||r.APP_NAME)+'</td><td>'+r.total+'</td><td>'+r.fails+'</td><td>'+r.rows_sum+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无数据</div>')+'</div>'+
+    '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">按 API 汇总</h3>'+
+    ((rep.byApi||[]).length?'<table><tr><th>API</th><th>路径</th><th>总调用</th><th>失败</th></tr>'+
+    rep.byApi.map(function(r){return '<tr><td>'+esc(r.api_name||r.API_NAME)+'</td><td><code>'+esc(r.api_path||'')+'</code></td><td>'+r.total+'</td><td>'+r.fails+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无数据</div>')+'</div></div>'+
+    '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">按月趋势</h3>'+
+    ((rep.byMonth||[]).length?'<table><tr><th>月份</th><th>调用总量</th></tr>'+
+    rep.byMonth.map(function(r){return '<tr><td>'+esc(r.stat_month||r.STAT_MONTH)+'</td><td>'+r.total+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无数据</div>')+'</div>'+
+    '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">用量明细(最近500条)</h3>'+
+    (u.length?'<table><tr><th>日期</th><th>应用</th><th>API</th><th>调用</th><th>失败</th><th>行数</th><th>累计耗时</th></tr>'+
+    u.map(function(r){return '<tr><td>'+esc(r.stat_day)+'</td><td>'+esc(r.app_name||r.app_id)+'</td><td>'+esc(r.api_name||r.api_id)+'</td><td>'+r.call_cnt+'</td><td>'+r.fail_cnt+'</td><td>'+r.rows_cnt+'</td><td>'+(r.cost_sum||0)+'ms</td></tr>'}).join('')+'</table>':'<div class="hint">暂无用量数据（网关调用后按日累计）</div>')+'</div>'
+  })
+}
+
+/* ---------- 开发者门户 ---------- */
+var portalKw='';
+function renderPortal(){
+  var url=API+'/portal/catalog'+(portalKw?'?keyword='+encodeURIComponent(portalKw):'');
+  Promise.all([api(url),api(API+'/portal/notices')]).then(function(rs){
+    var rows=rs[0].rows||rs[0]||[];
+    $('#main').innerHTML='<h2>开发者门户</h2>'+
+    '<div class="card"><div class="row">服务市场搜索 <input id="pKw" value="'+esc(portalKw)+'" style="width:240px" placeholder="名称/路径/备注" onkeydown="if(event.key===\'Enter\')portalSearch()">'+
+    '<button class="btn sm" onclick="portalSearch()">搜索</button> <span class="hint">共 '+(rs[0].total!=null?rs[0].total:rows.length)+' 个已发布服务</span></div>'+
+    '<table><tr><th>ID</th><th>服务名</th><th>路径</th><th>版本</th><th>SLA</th><th>鉴权</th><th>限流</th><th>操作</th></tr>'+
+    rows.map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.api_name)+'</td><td><code>/dsapi/'+esc(r.api_path)+'</code></td><td>'+esc(r.version||'')+'</td>'+
+    '<td>'+esc(r.sla_desc||'-')+'</td><td>'+(r.auth_type==='open'?'开放':'签名')+'</td><td>'+(r.rate_limit||'默认')+'/分</td>'+
+    '<td><button class="btn sm" onclick="portalDoc('+r.id+')">文档</button> <button class="btn sm green" onclick="portalDebug('+r.id+')">调试</button></td></tr>'}).join('')+'</table></div>'+
+    '<div class="card"><h3 style="font-weight:500;margin-bottom:10px">平台公告 <button class="btn sm" onclick="noticeModal()">+ 发布公告</button></h3>'+
+    ((rs[1]||[]).length?'<table><tr><th>时间</th><th>级别</th><th>标题</th><th>内容</th><th>发布人</th></tr>'+
+    rs[1].map(function(n){return '<tr><td>'+esc(n.create_time)+'</td><td>'+(n.level==='CRITICAL'?'<span class="tag off">CRITICAL</span>':(n.level==='WARN'?'<span class="tag warn">WARN</span>':'<span class="tag on">INFO</span>'))+'</td>'+
+    '<td>'+esc(n.title)+'</td><td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(n.content||'')+'">'+esc(n.content||'')+'</td><td>'+esc(n.publisher||'')+'</td></tr>'}).join('')+'</table>':'<div class="hint">暂无公告</div>')+'</div>'
+  })
+}
+function portalSearch(){portalKw=$('#pKw').value;renderPortal()}
+function portalDoc(id){
+  api(API+'/portal/doc/'+id).then(function(d){
+    modal('接口文档 - '+esc(d.apiName),
+    '<table><tr><th>属性</th><th>值</th></tr>'+
+    [['路径',d.path],['方法',d.method],['版本',d.version],['鉴权',d.authType],['限流',d.rateLimit],['最大行数',d.maxRows],['SLA',d.sla||'-'],['备注',d.remark||'']]
+    .map(function(x){return '<tr><td>'+x[0]+'</td><td>'+esc(x[1])+'</td></tr>'}).join('')+'</table>'+
+    '<h3 style="font-weight:500;margin:12px 0">入参</h3>'+
+    ((d.requestParams||[]).length?'<table><tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr>'+
+    d.requestParams.map(function(p){return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.type||'string')+'</td><td>'+(p.required?'是':'否')+'</td><td>'+esc(p.desc||p.defaultValue||'')+'</td></tr>'}).join('')+'</table>':'<div class="hint">无业务参数（可传 _pageNo/_pageSize 分页）</div>')+
+    '<h3 style="font-weight:500;margin:12px 0">出参字段</h3>'+
+    ((d.responseFields||[]).length?'<table><tr><th>字段</th><th>类型</th><th>敏感级</th><th>说明</th></tr>'+
+    d.responseFields.map(function(c){var lv=c.level==null?(c.LEVEL==null?-1:c.LEVEL):c.level;
+      return '<tr><td><code>'+esc(c.col_name||c.COL_NAME)+'</code></td><td>'+esc(c.data_type||c.DATA_TYPE||'')+'</td><td>'+lvlTag(lv)+'</td><td>'+esc(c.remarks||c.REMARKS||'')+'</td></tr>'}).join('')+'</table>':'<div class="hint">（采集元数据后自动生成出参说明）</div>')+
+    '<h3 style="font-weight:500;margin:12px 0">错误码</h3>'+
+    '<table><tr><th>code</th><th>说明</th><th>层面</th></tr>'+
+    (d.errorCodes||[]).map(function(e){return '<tr><td>'+esc(e.code)+'</td><td>'+esc(e.desc)+'</td><td>'+esc(e.layer)+'</td></tr>'}).join('')+'</table>'+
+    '<pre style="background:#1e2a3d;color:#dbe4f0;padding:12px;border-radius:8px;margin-top:12px">'+esc(d.example||'')+'</pre>',860)
+  })
+}
+function portalDebug(id){
+  var ps=prompt('调试参数(JSON，可留空)：','{}');if(ps===null)return;
+  var params={};try{params=JSON.parse(ps||'{}')}catch(e){toast('JSON 格式错误',false);return}
+  toast('调试中...',true);
+  req(API+'/portal/debug/'+id,params,'POST').then(function(r){
+    var html=r.code===0?(r.data&&r.data.rows!=null?tableHtml(r.data):'<pre>'+esc(JSON.stringify(r.data,null,2))+'</pre>'):'<div style="color:var(--err)">'+esc(r.message)+'</div>';
+    modal('在线调试结果 - API #'+id,html,860)})
+}
+function noticeModal(){
+  modal('发布公告','<div class="frm">'+fld('title','标题','')+
+  '<label>内容</label><textarea id="f_content" rows="4" style="width:100%"></textarea>'+
+  '<div style="margin-top:8px">'+fldSel('level','级别',[['INFO','INFO'],['WARN','WARN'],['CRITICAL','CRITICAL']],'INFO')+'</div></div>'+
+  '<div class="row" style="margin-top:14px"><button class="btn" onclick="doNotice()">发布</button>'+
+  '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+}
+function doNotice(){var b=formJson('f_');
+  api(API+'/notice/save',b,'POST').then(function(){toast('已发布',true);closeModal();renderPortal()})}
+
+/* ---------- 操作日志 ---------- */
+var opPage=1;
+function loadOplog(delta){
+  if(delta===1)opPage++;else if(delta===-1&&opPage>1)opPage--;else if(delta==null)opPage=1;
+  api(API+'/oplog?pageNo='+opPage+'&pageSize=25').then(function(d){
+    $('#main').innerHTML='<h2>操作日志</h2><div class="card"><table><tr><th>时间</th><th>用户</th><th>操作</th><th>详情</th><th>IP</th></tr>'+
+    (d.rows||[]).map(function(r){return '<tr><td>'+esc(r.create_time)+'</td><td>'+esc(r.username||'')+'</td><td>'+esc(r.action||'')+'</td>'+
+    '<td style="max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(r.detail||'')+'">'+esc(r.detail||'')+'</td><td>'+esc(r.client_ip||'')+'</td></tr>'}).join('')+'</table>'+
+    pager(d.total,opPage,'loadOplog')+'</div>'})
+}
+
+/* ---------- 用户管理 ---------- */
+function renderUser(){
+  api(API+'/user/list').then(function(rows){
+    cache.users=rows||[];
+    $('#main').innerHTML='<h2>用户管理 <button class="btn sm" onclick="userModal()">+ 新建用户</button></h2>'+
+    '<div class="card"><table><tr><th>ID</th><th>用户名</th><th>姓名</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr>'+
+    (rows||[]).map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.username)+'</td><td>'+esc(r.real_name||'')+'</td><td>'+esc(r.role)+'</td>'+
+    '<td>'+(r.status==1?'<span class="tag on">启用</span>':'<span class="tag off">停用</span>')+'</td><td>'+esc(r.create_time||'')+'</td>'+
+    '<td><button class="btn sm" onclick="userModal('+r.id+')">编辑</button> '+
+    '<button class="btn sm red" onclick="delUser('+r.id+')">删除</button></td></tr>'}).join('')+'</table></div>'+
+    '<div class="card"><span class="hint">角色说明：ADMIN 平台管理员｜OWNER 数据Owner(审批订阅)｜DEV 服务开发(审批发布/批量导出)｜SEC 安全(审批明文查看)｜AUDIT 审计（多角色逗号分隔）</span></div>'})
+}
+function userModal(id){
+  var d=id?cache.users.filter(function(x){return x.id===id})[0]||{}:{role:'DEV'};
+  modal((id?'编辑':'新建')+'用户','<div class="frm"><div class="grid2">'+
+  fld('username','用户名'+(id?'(不可改)':''),d.username,id?'disabled':'')+
+  fld('password','密码'+(id?'(留空不修改)':''),'','type="password"')+'</div><div class="grid2">'+
+  fld('realName','姓名',d.real_name||'')+
+  fldSel('role','角色',[['ADMIN','ADMIN 管理员'],['OWNER','OWNER 数据Owner'],['DEV','DEV 开发'],['SEC','SEC 安全'],['AUDIT','AUDIT 审计']],d.role||'DEV')+'</div></div>'+
+  '<div class="row" style="margin-top:14px"><button class="btn" onclick="saveUser('+(id||0)+')">保存</button>'+
+  '<button class="btn gray" onclick="closeModal()">取消</button></div>')
+}
+function saveUser(id){var b=formJson('f_');if(id)b.id=id;
+  api(API+'/user/save',b,'POST').then(function(){toast('已保存',true);closeModal();renderUser()})}
+function delUser(id){if(!confirm('确认删除该用户？'))return;
+  api(API+'/user/delete/'+id,{},'POST').then(function(){toast('已删除',true);renderUser()})}
+
+/* ---------- 参数配置 ---------- */
+function renderConfig(){
+  api(API+'/config/list').then(function(rows){
+    cache.cfgs=rows||[];
+    $('#main').innerHTML='<h2>参数配置</h2><div class="card">'+
+    '<table><tr><th>参数键</th><th>参数值</th><th>说明</th><th>更新时间</th></tr>'+
+    (rows||[]).map(function(r){return '<tr><td><code>'+esc(r.cfg_key)+'</code></td>'+
+    '<td><input id="cfg_'+r.id+'" value="'+esc(r.cfg_value||'')+'" style="width:100%"></td>'+
+    '<td>'+esc(r.cfg_desc||'')+'</td><td>'+esc(r.update_time||'')+'</td></tr>'}).join('')+'</table>'+
+    '<div class="row" style="margin-top:10px"><button class="btn" onclick="saveConfigs()">保存全部修改</button></div></div>'+
+    '<div class="card"><span class="hint">新增参数：</span><div class="row" style="margin-top:8px">'+
+    '<input id="nk" placeholder="新参数键" style="width:200px"><input id="nv" placeholder="参数值" style="width:240px">'+
+    '<button class="btn sm" onclick="addCfg()">添加</button></div></div>'})
+}
+function saveConfigs(){
+  var chain=Promise.resolve(),changed=0;
+  cache.cfgs.forEach(function(r){
+    var el=document.getElementById('cfg_'+r.id);
+    if(el&&el.value!==String(r.cfg_value||'')){
+      changed++;chain=chain.then(function(){return api(API+'/config/save',{cfgKey:r.cfg_key,cfgValue:el.value},'POST')})}
+  });
+  chain.then(function(){toast(changed?('已保存 '+changed+' 项'):'无修改',true);if(changed)renderConfig()}).catch(function(){})
+}
+function addCfg(){
+  var k=$('#nk').value,v=$('#nv').value;if(!k){toast('请输入参数键',false);return}
+  api(API+'/config/save',{cfgKey:k,cfgValue:v},'POST').then(function(){toast('已添加',true);renderConfig()})}
+
+boot()
+</script>
+</body>
+</html>
